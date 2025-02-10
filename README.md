@@ -1,5 +1,5 @@
 # Gestion_Des_Panes
-Contexte et Objectifs
+-->Contexte et Objectifs:
 Dans un environnement professionnel, la gestion des postes de travail et le suivi des pannes constituent des enjeux majeurs pour garantir une productivité optimale. L’objectif de ce projet est de développer une application web permettant :
 •	La gestion centralisée des postes de travail et des équipements associés.
 •	Le signalement et le suivi efficace des pannes par les utilisateurs(le superviseur).
