@@ -6,5 +6,4 @@ import lombok.Data;
 public class FamilyDTO {
     private Double id;
     private String name;
-
 }

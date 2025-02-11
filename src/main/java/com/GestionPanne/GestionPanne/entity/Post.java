@@ -1,30 +1,35 @@
 package com.GestionPanne.GestionPanne.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.*;
 
-@Data
+import java.util.List;
+
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "posts")
 public class Post {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Double id;
 
-    @NotBlank
     private String name;
+    private String description;
+    private String position;
 
+    // Relation avec Project (Un poste appartient à un projet)
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @NotBlank
-    private String description;
+    // Relation avec Users (Un poste contient plusieurs utilisateurs)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<User> users;
 
-    private String position;
+    // Relation avec Problems (Un poste peut avoir plusieurs pannes)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<Problem> problems;
 }
