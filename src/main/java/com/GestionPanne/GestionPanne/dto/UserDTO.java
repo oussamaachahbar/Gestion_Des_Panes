@@ -7,6 +7,7 @@ public class UserDTO {
     private Double id;
     private String name;
     private String email;
+    //sans password
     private String phone;
     private String role;
     private boolean isSupervisor;
