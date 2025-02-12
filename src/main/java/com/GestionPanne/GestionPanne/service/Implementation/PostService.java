@@ -1,12 +1,9 @@
 package com.GestionPanne.GestionPanne.service.Implementation;
 
-import com.GestionPanne.GestionPanne.dto.FiliereDTO;
 import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
-import com.GestionPanne.GestionPanne.dto.UserDTO;
-import com.GestionPanne.GestionPanne.entity.Filiere;
+
 import com.GestionPanne.GestionPanne.entity.Post;
-import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.PostRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IPostService;
