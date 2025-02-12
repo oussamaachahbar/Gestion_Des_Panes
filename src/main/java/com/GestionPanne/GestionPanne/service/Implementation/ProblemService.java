@@ -151,7 +151,7 @@ public class ProblemService implements IProblemService {
 
             response.setStatusCode(200);
             response.setMessage("Problèmes pour le poste récupérés avec succès.");
-            response.setProblems(Utils.mapProblemEntityListToDTOList(problems));
+            response.setProblemList(Utils.mapProblemListEntityToProblemListDTO(problems));
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Erreur interne : " + e.getMessage());
@@ -167,7 +167,7 @@ public class ProblemService implements IProblemService {
 
             response.setStatusCode(200);
             response.setMessage("Problèmes pour l'utilisateur récupérés avec succès.");
-            response.setProblems(Utils.mapProblemEntityListToDTOList(problems));
+            response.setProblemList(Utils.mapProblemListEntityToProblemListDTO(problems));
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Erreur interne : " + e.getMessage());
