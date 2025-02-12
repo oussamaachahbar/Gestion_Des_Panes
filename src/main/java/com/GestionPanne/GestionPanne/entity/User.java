@@ -1,25 +1,25 @@
-
-
 package com.GestionPanne.GestionPanne.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 @Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Double id;
+    private Long id;
+
     @NotBlank
     private String password;
 
@@ -27,24 +27,21 @@ public class User implements UserDetails {
     private String email;
     private String phone;
     private String role;
-    private boolean isSupervisor;
+    private Boolean isSupervisor;  // ✅ Correction : Boolean au lieu de boolean pour éviter les erreurs
 
-    // Relation avec Post (Chaque user appartient à un seul post)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    // Relation avec Problem (Un utilisateur peut signaler plusieurs pannes)
-    @OneToMany(mappedBy = "supervisor", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Problem> problems;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role));
     }
-
-
-
 
     @Override
     public String getUsername() {
@@ -70,7 +67,8 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public boolean isSupervisor() {
+        return true;
+    }
 }
-
-
-

@@ -1,12 +1,11 @@
 package com.GestionPanne.GestionPanne.repo;
-import java.util.List;
 
-import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
-public interface ProjectRepository extends JpaRepository<Project, Integer> {
+import org.springframework.stereotype.Repository;
 
-    List<Project> findByFamily_Id(Double FamilyId);
-    List<Project> findByFiliere_Id(Double UserId);
+import java.util.List;
 
+@Repository
+public interface ProjectRepository extends JpaRepository<Project, Long> { ;
 }

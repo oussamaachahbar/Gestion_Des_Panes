@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class FamilyDTO {
-    private Double id;
+    private long id;
     private String name;
 }

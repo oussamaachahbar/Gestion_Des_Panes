@@ -1,7 +1,5 @@
 package com.GestionPanne.GestionPanne.dto;
 
-
-import com.GestionPanne.GestionPanne.dto.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
@@ -29,6 +27,5 @@ public class Response {
     private List<PostDTO> postList;
     private List<FiliereDTO> filiereList;
     private List<FamilyDTO> familyList;
-
 
 }

@@ -2,9 +2,7 @@ package com.GestionPanne.GestionPanne.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
 
@@ -12,24 +10,19 @@ import java.util.Date;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-
 @Table(name = "problems")
 public class Problem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Double id;
+    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "post_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
-
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    private Project project;
 
     @Temporal(TemporalType.DATE)
     private Date failureDate;
@@ -39,6 +32,7 @@ public class Problem {
 
     @NotBlank
     private String failureDetails;
+
     @Enumerated(EnumType.STRING)
     private Priority priority;
 
