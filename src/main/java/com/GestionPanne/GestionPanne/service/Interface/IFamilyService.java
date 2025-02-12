@@ -9,7 +9,7 @@ public interface IFamilyService {
 
     Response getFamilyById(Long familyId);
 
-    Response updateFamily(Long familyId, Family familyRequest);
+    Response updateFamily( Family familyRequest);
 
     Response deleteFamily(Long familyId);
 

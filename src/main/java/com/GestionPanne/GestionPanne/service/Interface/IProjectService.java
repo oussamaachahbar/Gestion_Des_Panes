@@ -6,6 +6,11 @@ public interface IProjectService {
     Response getAllProjects();
     Response getProjectById(long projectId);
     Response updateProject(long projectId,Project project);
+
+    Response createProject(Project project);
+
+    Response updateProject(Project project);
+
     Response deleteProject(long projectId);
 
 }
