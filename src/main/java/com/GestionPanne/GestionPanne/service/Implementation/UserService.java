@@ -195,12 +195,10 @@ public class UserService implements IUserService {
     public Response<UserDTO> getUserByEmail(String email) {
         Response<UserDTO> response = new Response<>();
         try {
-            // Récupérer l'utilisateur par son email
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new OurException("User not found with email: " + email));
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(user);
 
-            // Construire la réponse
             response.setStatusCode(200); // 200 OK
             response.setMessage("User retrieved successfully");
             response.setData(userDTO); // Utilisation de setData pour une réponse unique
@@ -218,11 +216,9 @@ public class UserService implements IUserService {
     public Response<List<ProblemDTO>> getUserProblems(long userId) {
         Response<List<ProblemDTO>> response = new Response<>();
         try {
-            // Récupérer l'utilisateur et ses problèmes
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new OurException("User not found with ID: " + userId));
 
-            // Mapper l'utilisateur en UserDTO avec les problèmes
             UserDTO userDTO = Utils.mapUserEntityToUserDTOWithPostsAndProblems(user);
 
             // Construire la réponse

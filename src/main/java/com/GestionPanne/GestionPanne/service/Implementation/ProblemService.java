@@ -199,4 +199,14 @@ public class ProblemService implements IProblemService {
         }
         return response;
     }
+
+    @Override
+    public Response<ProblemDTO> validateProblem(Long id) {
+        return null;
+    }
+
+    @Override
+    public Response<ProblemDTO> assignProblemToTeam(Long id, Long teamId) {
+        return null;
+    }
 }

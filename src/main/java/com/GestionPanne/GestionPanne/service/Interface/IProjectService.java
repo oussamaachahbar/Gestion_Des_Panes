@@ -17,4 +17,5 @@ public interface IProjectService {
 
     Response<Void> deleteProject(long projectId);
 
+    Response<ProjectDTO> assignWorkstationToProject(Long projectId, Long workstationId);
 }

@@ -1,56 +1,50 @@
 package com.GestionPanne.GestionPanne.controller;
+
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.UserDTO;
-import com.GestionPanne.GestionPanne.service.Interface.IUserService;
+import com.GestionPanne.GestionPanne.entity.User;
+import com.GestionPanne.GestionPanne.service.Implementation.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
-
     @Autowired
-    private IUserService userService;
+    private UserService userService;
 
-
-    @GetMapping("/all")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response<List<UserDTO>>> getAllUsers() {
-        Response<List<UserDTO>> response = userService.getAllUsers();
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+    // Créer un utilisateur
+    @PostMapping
+    public Response<UserDTO> createUser(@RequestBody User userDTO) {
+        return userService.registre(userDTO);
     }
 
-    @GetMapping("/get-by-id/{userId}")
-    public ResponseEntity<Response<UserDTO>> getUserById(@PathVariable("userId") String userId) {
-        Response<UserDTO> response = userService.getUserById(Long.parseLong(userId));
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+    // Récupérer tous les utilisateurs
+    @GetMapping
+    public Response<List<UserDTO>> getAllUsers() {
+        return userService.getAllUsers();
     }
 
-    @DeleteMapping("/delete/{userId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response<Void>> deleteUSer(@PathVariable("userId") String userId) {
-        Response<Void> response = userService.deleteUser(Long.parseLong(userId));
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+    // Récupérer un utilisateur par son ID
+    @GetMapping("/{id}")
+    public Response<UserDTO> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
     }
 
-    @GetMapping("/get-logged-in-profile-info")
-    public ResponseEntity<Response<UserDTO>> getLoggedInUserProfile() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        Response<UserDTO> response = userService.getMyInfo(email);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+    // Mettre à jour un utilisateur
+    @PutMapping("/{id}")
+    public Response<UserDTO> updateUser( @RequestBody User userDTO) {
+        return userService.updateUser( userDTO);
     }
 
-
+    // Supprimer un utilisateur
+    @DeleteMapping("/{id}")
+    public Response<Void> deleteUser(@PathVariable Long id) {
+        return userService.deleteUser(id);
+    }
 
 
 }
