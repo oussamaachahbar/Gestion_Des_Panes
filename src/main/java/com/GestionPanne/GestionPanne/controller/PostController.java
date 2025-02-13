@@ -5,6 +5,7 @@ import com.GestionPanne.GestionPanne.dto.*;
 import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.service.Implementation.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,31 +19,38 @@ public class PostController {
 
     // Créer un poste de travail
     @PostMapping
-    public Response<PostDTO> createWorkstation(@RequestBody Post workstationDTO) {
-        return workstationService.createPost(workstationDTO);
+    public ResponseEntity<Response<PostDTO>> createWorkstation(@RequestBody Post workstationDTO) {
+        Response<PostDTO> response= workstationService.createPost(workstationDTO);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+
     }
 
-    // Récupérer tous les postes de travail
     @GetMapping
-    public Response<List<PostDTO>> getAllWorkstations() {
-        return workstationService.getAllPosts();
+    public ResponseEntity<Response<List<PostDTO>>> getAllWorkstations() {
+
+        Response<List<PostDTO>> response=  workstationService.getAllPosts();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Récupérer un poste de travail par son ID
     @GetMapping("/{id}")
-    public Response<PostDTO> getWorkstationById(@PathVariable Long id) {
-        return workstationService.getPostById(id);
+    public ResponseEntity<Response<PostDTO>> getWorkstationById(@PathVariable Long id) {
+        Response<PostDTO> response= workstationService.getPostById(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Mettre à jour un poste de travail
     @PutMapping("/{id}")
-    public Response<PostDTO> updateWorkstation( @RequestBody Post workstationDTO) {
-        return workstationService.updatePost( workstationDTO);
+    public ResponseEntity<Response<PostDTO>> updateWorkstation( @RequestBody Post workstationDTO) {
+        Response<PostDTO> response= workstationService.updatePost( workstationDTO);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Supprimer un poste de travail
     @DeleteMapping("/{id}")
-    public Response<Void> deleteWorkstation(@PathVariable Long id) {
-        return workstationService.deletePost(id);
+    public ResponseEntity<Response<Void>> deleteWorkstation(@PathVariable Long id) {
+
+        Response<Void> response= workstationService.deletePost(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }

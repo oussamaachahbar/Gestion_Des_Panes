@@ -1,10 +1,12 @@
 package com.GestionPanne.GestionPanne.controller;
 
+import com.GestionPanne.GestionPanne.dto.ProjectDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.UserDTO;
 import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.service.Implementation.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,32 +20,32 @@ public class UserController {
 
     // Créer un utilisateur
     @PostMapping
-    public Response<UserDTO> createUser(@RequestBody User userDTO) {
-        return userService.registre(userDTO);
-    }
+    public ResponseEntity<Response<UserDTO>> createUser(@RequestBody User userDTO) {
+        Response<UserDTO> response= userService.registre(userDTO);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
 
-    // Récupérer tous les utilisateurs
+    }
     @GetMapping
-    public Response<List<UserDTO>> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<Response<List<UserDTO>>> getAllUsers() {
+        Response <List<UserDTO>> response=  userService.getAllUsers();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // Récupérer un utilisateur par son ID
     @GetMapping("/{id}")
-    public Response<UserDTO> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public ResponseEntity<Response<UserDTO>> getUserById(@PathVariable Long id) {
+        Response<UserDTO> response= userService.getUserById(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // Mettre à jour un utilisateur
     @PutMapping("/{id}")
-    public Response<UserDTO> updateUser( @RequestBody User userDTO) {
-        return userService.updateUser( userDTO);
+    public ResponseEntity<Response<UserDTO>> updateUser( @RequestBody User userDTO) {
+        Response<UserDTO> response= userService.updateUser( userDTO);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
-
-    // Supprimer un utilisateur
     @DeleteMapping("/{id}")
-    public Response<Void> deleteUser(@PathVariable Long id) {
-        return userService.deleteUser(id);
+    public ResponseEntity<Response<Void>> deleteUser(@PathVariable Long id) {
+        Response<Void> response= userService.deleteUser(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
 

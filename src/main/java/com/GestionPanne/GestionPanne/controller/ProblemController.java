@@ -1,10 +1,12 @@
 package com.GestionPanne.GestionPanne.controller;
 
+import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.entity.Problem;
 import com.GestionPanne.GestionPanne.service.Implementation.ProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
@@ -16,45 +18,54 @@ public class ProblemController {
 
     // Signaler un problème
     @PostMapping
-    public Response<ProblemDTO> reportProblem(@PathVariable Long UserId,@PathVariable Long PostId,@RequestBody Problem problemDTO) {
-        return problemService.reportProblem(UserId,PostId,problemDTO);
+    public ResponseEntity<Response<ProblemDTO>> reportProblem(@PathVariable Long UserId, @PathVariable Long PostId, @RequestBody Problem problemDTO) {
+        Response<ProblemDTO> response= problemService.reportProblem(UserId,PostId,problemDTO);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+
     }
 
     // Récupérer tous les problèmes
     @GetMapping
-    public Response<List<ProblemDTO>> getAllProblems() {
-        return problemService.getAllProblems();
+    public ResponseEntity<Response<List<ProblemDTO>>> getAllProblems() {
+        Response<List<ProblemDTO>> response= problemService.getAllProblems();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Récupérer un problème par son ID
     @GetMapping("/{id}")
-    public Response<ProblemDTO> getProblemById(@PathVariable Long id) {
-        return problemService.getProblemById(id);
+    public ResponseEntity<Response<ProblemDTO>> getProblemById(@PathVariable Long id) {
+        Response<ProblemDTO> response= problemService.getProblemById(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Mettre à jour un problème
     @PutMapping("/{id}")
-    public Response<ProblemDTO> updateProblem(@PathVariable Long id, @RequestBody Problem problemDTO) {
-        return problemService.updateProblem(id, problemDTO);
+    public ResponseEntity<Response<ProblemDTO>> updateProblem(@PathVariable Long id, @RequestBody Problem problemDTO) {
+        Response<ProblemDTO> response= problemService.updateProblem(id, problemDTO);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+
     }
 
     // Supprimer un problème
     @DeleteMapping("/{id}")
-    public Response<Void> deleteProblem(@PathVariable Long id) {
-        return problemService.deleteProblem(id);
+    public ResponseEntity<Response<Void>> deleteProblem(@PathVariable Long id) {
+        Response<Void> response= problemService.deleteProblem(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Valider un problème (Admin seulement)
     @PutMapping("/{id}/validate")
-    public Response<ProblemDTO> validateProblem(@PathVariable Long id) {
-        return problemService.validateProblem(id);
+    public ResponseEntity<Response<ProblemDTO>> validateProblem(@PathVariable Long id) {
+        Response<ProblemDTO> response=  problemService.validateProblem(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Assigner un problème à une équipe (Admin seulement)
     @PutMapping("/{id}/assign-team")
-    public Response<ProblemDTO> assignProblemToTeam(
+    public ResponseEntity<Response<ProblemDTO>> assignProblemToTeam(
             @PathVariable Long id,
             @RequestParam Long teamId) {
-        return problemService.assignProblemToTeam(id, teamId);
+        Response<ProblemDTO> response= problemService.assignProblemToTeam(id, teamId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }
