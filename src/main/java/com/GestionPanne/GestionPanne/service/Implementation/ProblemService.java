@@ -114,11 +114,9 @@ public class ProblemService implements IProblemService {
             Problem existingProblem = problemRepository.findById(Math.toIntExact(problemId))
                     .orElseThrow(() -> new OurException("Problème avec l'ID " + problemId + " introuvable."));
 
-            // Mettre à jour les champs du problème
             existingProblem.setTitle(problemRequest.getTitle());
             existingProblem.setFailureDetails(problemRequest.getFailureDetails());
 
-            // Mettre à jour la date de panne (en ignorant l'heure)
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(problemRequest.getFailureDate());
             calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -127,10 +125,8 @@ public class ProblemService implements IProblemService {
             calendar.set(Calendar.MILLISECOND, 0);
             existingProblem.setFailureDate(calendar.getTime());
 
-            // Sauvegarder le problème mis à jour
             Problem updatedProblem = problemRepository.save(existingProblem);
 
-            // Construire la réponse
             response.setStatusCode(200); // 200 OK
             response.setMessage("Problème mis à jour avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));
@@ -148,14 +144,14 @@ public class ProblemService implements IProblemService {
     public Response<Void> deleteProblem(Long problemId) {
         Response<Void> response = new Response<>();
         try {
-            // Vérifier si le problème existe
+
             Problem problem = problemRepository.findById(Math.toIntExact(problemId))
                     .orElseThrow(() -> new OurException("Problème avec l'ID " + problemId + " introuvable."));
 
-            // Supprimer le problème
+
             problemRepository.delete(problem);
 
-            // Construire la réponse
+
             response.setStatusCode(200); // 200 OK
             response.setMessage("Problème supprimé avec succès.");
         } catch (OurException e) {
@@ -172,10 +168,10 @@ public class ProblemService implements IProblemService {
     public Response<List<ProblemDTO>> getProblemsByPost(Long postId) {
         Response<List<ProblemDTO>> response = new Response<>();
         try {
-            // Récupérer les problèmes par post
+
             List<Problem> problems = problemRepository.findByPostId(postId);
 
-            // Construire la réponse
+
             response.setStatusCode(200); // 200 OK
             response.setMessage("Problèmes pour le poste récupérés avec succès.");
             response.setData(Utils.mapProblemListEntityToProblemListDTO(problems));

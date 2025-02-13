@@ -15,7 +15,6 @@ public class Response<T> {
     private String token;
     private String role;
     private String expirationTime;
-
-    private T data; // Donnée unique (ex: UserDTO, ProjectDTO, etc.)
+    private T data;//Donnée unique (userdto,postdto, problemdto, projectdto,familydto,filieredto).
     private List<T> dataList; // Liste de données (ex: List<UserDTO>, List<ProjectDTO>, etc.)
 }
