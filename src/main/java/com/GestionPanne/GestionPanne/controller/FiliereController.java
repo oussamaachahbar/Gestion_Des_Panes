@@ -6,6 +6,7 @@ import com.GestionPanne.GestionPanne.entity.Filiere;
 import com.GestionPanne.GestionPanne.service.Interface.IFiliereService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,35 +18,36 @@ public class FiliereController {
     @Autowired
     private IFiliereService filiereService;
 
-    @PostMapping
+    @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<FiliereDTO>> createFiliere(@RequestBody Filiere filiereDTO) {
         Response<FiliereDTO> response=  filiereService.createFiliere(filiereDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<Response<List<FiliereDTO>>> getAllFilieres() {
         Response<List<FiliereDTO>> response= filiereService.getAllFilieres();
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/getFiliereById/{id}")
     public ResponseEntity<Response<FiliereDTO>> getFiliereById(@PathVariable Long id) {
         Response<FiliereDTO> response= filiereService.getFiliereById(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/updateFiliere/{id}")
     public ResponseEntity<Response<FiliereDTO>> updateFiliere(@PathVariable Long id, @RequestBody Filiere filiereDTO) {
         Response<FiliereDTO> response= filiereService.updateFiliere(id, filiereDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/deleteFiliere/{id}")
     public ResponseEntity<Response<Void>> deleteFiliere(@PathVariable Long id) {
         Response<Void> response= filiereService.deleteFiliere(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);

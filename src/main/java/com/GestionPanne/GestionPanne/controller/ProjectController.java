@@ -8,19 +8,22 @@ import com.GestionPanne.GestionPanne.entity.Project;
 import com.GestionPanne.GestionPanne.service.Implementation.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/projects")
 public class ProjectController {
 
     @Autowired
     private ProjectService projectService;
 
     // Créer un projet
-    @PostMapping
+    @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+
     public ResponseEntity<Response<ProjectDTO>> createProject(@RequestBody Project projectDTO) {
         Response<ProjectDTO> response= projectService.createProject(projectDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -28,7 +31,7 @@ public class ProjectController {
     }
 
     // Récupérer tous les projets
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<Response<List<ProjectDTO>>> getAllProjects() {
         Response<List<ProjectDTO>> response= projectService.getAllProjects();
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -37,7 +40,7 @@ public class ProjectController {
     }
 
     // Récupérer un projet par son ID
-    @GetMapping("/{id}")
+    @GetMapping("/getProjectById/{id}")
     public ResponseEntity<Response<ProjectDTO>> getProjectById(@PathVariable Long id) {
         Response<ProjectDTO> response= projectService.getProjectById(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -45,21 +48,21 @@ public class ProjectController {
     }
 
     // Mettre à jour un projet
-    @PutMapping("/{id}")
+    @PutMapping("/updateProject/{id}")
     public ResponseEntity<Response<ProjectDTO>> updateProject( @RequestBody Project projectDTO) {
         Response<ProjectDTO> response= projectService.updateProject(projectDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Supprimer un projet
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/deleteProject/{id}")
     public ResponseEntity<Response<Void>> deleteProject(@PathVariable Long id) {
             Response<Void> response= projectService.deleteProject(id);
             return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     // Assigner un poste de travail à un projet
-    @PostMapping("/{projectId}/assign-workstation")
+    @PostMapping("/assignWorkstationToProject/{projectId}/assign-workstation")
     public ResponseEntity<Response<ProjectDTO>> assignWorkstationToProject(
             @PathVariable Long projectId,
             @RequestParam Long workstationId) {
