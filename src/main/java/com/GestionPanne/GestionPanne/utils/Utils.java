@@ -79,13 +79,17 @@ public class Utils {
     public static ProblemDTO mapProblemEntityToProblemDTO(Problem problem) {
         ProblemDTO problemDTO = new ProblemDTO();
         problemDTO.setId(problem.getId());
-        problemDTO.setUser(problem.getUser().getId());
-        problemDTO.setPost(Collections.singletonList(problem.getPost().getId()));
+        problemDTO.setUserId(problem.getUser().getId());
+        problemDTO.setUserId(problem.getPost().getId());
         problemDTO.setFailureDate(problem.getFailureDate());
         problemDTO.setSolutionDate(problem.getSolutionDate());
         problemDTO.setFailureDetails(problem.getFailureDetails());
-        problemDTO.setPriority(String.valueOf(problem.getPriority()));
-        problemDTO.setEtat(String.valueOf(problem.getEtat()));
+        if (problem.getPriority() != null) {
+            problemDTO.setPriority(problem.getPriority().name()); // Convertir l'enum en String
+        }
+        if (problem.getEtat() != null) {
+            problemDTO.setEtat(problem.getEtat().name()); // Convertir l'enum en String
+        }
         return problemDTO;
     }
 

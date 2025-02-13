@@ -1,16 +1,20 @@
 package com.GestionPanne.GestionPanne.service.Interface;
+import com.GestionPanne.GestionPanne.dto.ProjectDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Project;
+
+import java.util.List;
+
 public interface IProjectService {
-    Response createProject(long familyId,long filiereId,Project project);
-    Response getAllProjects();
-    Response getProjectById(long projectId);
-    Response updateProject(long projectId,Project project);
+    Response<ProjectDTO> createProject(long familyId, long filiereId, Project project);
+    Response<List<ProjectDTO>> getAllProjects();
+    Response<ProjectDTO> getProjectById(long projectId);
+    Response<ProjectDTO> updateProject(long projectId,Project project);
 
-    Response createProject(Project project);
+    Response<ProjectDTO> createProject(Project project);
 
-    Response updateProject(Project project);
+    Response<ProjectDTO> updateProject(Project project);
 
-    Response deleteProject(long projectId);
+    Response<Void> deleteProject(long projectId);
 
 }

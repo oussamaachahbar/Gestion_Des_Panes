@@ -7,7 +7,8 @@ import java.util.List;
 public class ProjectDTO {
     private long id;
     private String nameProject;
-    private long familyId;  // Objet FamilyDTO au lieu de l'ID
-    private long filiereId; // Objet FiliereDTO au lieu de l'ID
-    private List<PostDTO> posts; // Liste des postes liés au projet
+    private long familyId; // Ou FamilyDTO si nécessaire
+    private long filiereId; // Ou FiliereDTO si nécessaire
+    private List<Long> postIds;
+    private List<PostDTO> posts;// IDs des posts
 }

@@ -1,17 +1,19 @@
 package com.GestionPanne.GestionPanne.dto;
 
+import com.GestionPanne.GestionPanne.entity.Etat;
+import com.GestionPanne.GestionPanne.entity.Priority;
 import lombok.Data;
 import java.util.Date;
 import java.util.List;
-
 @Data
 public class ProblemDTO {
-    private long id;
-    private long user;    // L'utilisateur qui signale la panne
+    private Long id;
+    private Long userId; // ID de l'utilisateur
+    private Long postId; // ID du post
     private Date failureDate;
     private Date solutionDate;
     private String failureDetails;
-    private String priority; // (critical, high, medium, low)
-    private String etat; // (En attente, in progress, finished)
-    private List<Long> post;//Peut avoir plusieurs post qui sont en panne
+    private String priority; // Enum Priority converti en String
+    private String etat; // Enum Etat converti en String
+
 }

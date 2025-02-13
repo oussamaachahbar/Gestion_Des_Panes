@@ -1,17 +1,19 @@
 package com.GestionPanne.GestionPanne.service.Interface;
 import java.util.List;
+
+import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Post;
 public interface IPostService {
-    Response createPost( Post postRequest);
+    Response<PostDTO> createPost(Post postRequest);
 
-    Response getAllPosts();
+    Response<List<PostDTO>> getAllPosts();
 
-    Response getPostById(Long postId);
+    Response<PostDTO> getPostById(Long postId);
 
-    Response updatePost( Post postRequest);
+    Response<PostDTO> updatePost( Post postRequest);
 
-    Response deletePost(Long postId);
+    Response<Void> deletePost(Long postId);
 
 
 }

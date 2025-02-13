@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Integer> {
+    boolean existsByName(String name);
 
-         // Correction du type ID
+    // Correction du type ID
 }

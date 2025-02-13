@@ -1,6 +1,7 @@
 package com.GestionPanne.GestionPanne.service.Implementation;
 
 import com.GestionPanne.GestionPanne.dto.LoginRequest;
+import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.UserDTO;
 import com.GestionPanne.GestionPanne.entity.User;
@@ -19,183 +20,243 @@ import java.util.List;
 
 @Service
 public class UserService implements IUserService {
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Autowired
     private JWTUtils jwtUtils;
+
     @Autowired
     private AuthenticationManager authenticationManager;
 
     @Override
-    public Response registre(User user) {
-        Response response = new Response();
+    public Response<UserDTO> registre(User user) {
+        Response<UserDTO> response = new Response<>();
         try {
+            // Vérifier si l'email existe déjà
             if (userRepository.existsByEmail(user.getEmail())) {
                 throw new OurException("Email already exists: " + user.getEmail());
             }
+
+            // Encoder le mot de passe
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+            // Sauvegarder l'utilisateur
             User savedUser = userRepository.save(user);
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(savedUser);
-            response.setStatusCode(200);
-            response.setUser(userDTO);
+
+            // Construire la réponse
+            response.setStatusCode(201); // 201 Created
+            response.setMessage("User registered successfully");
+            response.setData(userDTO); // Utilisation de setData pour une réponse unique
         } catch (OurException e) {
-            response.setStatusCode(400);
+            response.setStatusCode(400); // 400 Bad Request
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error occurred during user registration: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response login(LoginRequest loginRequest) {
-        Response response = new Response();
+    public Response<String> login(LoginRequest loginRequest) {
+        Response<String> response = new Response<>();
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            // Authentifier l'utilisateur
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+            );
+
+            // Récupérer l'utilisateur
             User user = userRepository.findByEmail(loginRequest.getEmail())
                     .orElseThrow(() -> new OurException("User not found"));
 
+            // Générer le token JWT
             String token = jwtUtils.generateToken(user);
-            response.setStatusCode(200);
-            response.setToken(token);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("Login successful");
+            response.setData(token); // Utilisation de setData pour le token
             response.setRole(user.getRole());
             response.setExpirationTime("7 Days");
-            response.setMessage("Login successful");
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error during login: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response getAllUsers() {
-        Response response = new Response();
+    public Response<List<UserDTO>> getAllUsers() {
+        Response<List<UserDTO>> response = new Response<>();
         try {
+            // Récupérer tous les utilisateurs
             List<User> users = userRepository.findAll();
             List<UserDTO> userDTOList = Utils.mapUserListEntityToUserListDTO(users);
-            response.setStatusCode(200);
-            response.setUserList(userDTOList);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("Users retrieved successfully");
+            response.setData(userDTOList); // Utilisation de setData pour une liste de données
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error retrieving users: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response getUserById(long id) {
-        Response response = new Response();
+    public Response<UserDTO> getUserById(long id) {
+        Response<UserDTO> response = new Response<>();
         try {
-            User user = userRepository.findById(id).orElseThrow(() -> new OurException("User not found"));
+            // Récupérer l'utilisateur par son ID
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new OurException("User not found with ID: " + id));
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(user);
-            response.setStatusCode(200);
-            response.setUser(userDTO);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("User retrieved successfully");
+            response.setData(userDTO); // Utilisation de setData pour une réponse unique
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error retrieving user: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response updateUser(User user) {
-        Response response = new Response();
+    public Response<UserDTO> updateUser(User user) {
+        Response<UserDTO> response = new Response<>();
         try {
+            // Vérifier si l'utilisateur existe
             if (!userRepository.existsById(user.getId())) {
-                throw new OurException("User not found");
+                throw new OurException("User not found with ID: " + user.getId());
             }
+
+            // Encoder le mot de passe
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+            // Mettre à jour l'utilisateur
             User updatedUser = userRepository.save(user);
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(updatedUser);
-            response.setStatusCode(200);
-            response.setUser(userDTO);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("User updated successfully");
+            response.setData(userDTO); // Utilisation de setData pour une réponse unique
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error updating user: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response deleteUser(long id) {
-        Response response = new Response();
+    public Response<Void> deleteUser(long id) {
+        Response<Void> response = new Response<>();
         try {
-            userRepository.findById(id).orElseThrow(() -> new OurException("User not found"));
-            userRepository.deleteById(id);
-            response.setStatusCode(200);
+            // Vérifier si l'utilisateur existe
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new OurException("User not found with ID: " + id));
+
+            // Supprimer l'utilisateur
+            userRepository.delete(user);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
             response.setMessage("User deleted successfully");
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error deleting user: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response getUserByEmail(String email) {
-        Response response = new Response();
+    public Response<UserDTO> getUserByEmail(String email) {
+        Response<UserDTO> response = new Response<>();
         try {
-            User user = userRepository.findByEmail(email).orElseThrow(() -> new OurException("User not found"));
+            // Récupérer l'utilisateur par son email
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new OurException("User not found with email: " + email));
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(user);
-            response.setStatusCode(200);
-            response.setUser(userDTO);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("User retrieved successfully");
+            response.setData(userDTO); // Utilisation de setData pour une réponse unique
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error retrieving user: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response getUserProblems(long userId) {
-        Response response = new Response();
+    public Response<List<ProblemDTO>> getUserProblems(long userId) {
+        Response<List<ProblemDTO>> response = new Response<>();
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new OurException("User not found"));
-            response.setStatusCode(200);
+            // Récupérer l'utilisateur et ses problèmes
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new OurException("User not found with ID: " + userId));
+
+            // Mapper l'utilisateur en UserDTO avec les problèmes
             UserDTO userDTO = Utils.mapUserEntityToUserDTOWithPostsAndProblems(user);
-            response.setProblemList(userDTO.getProblems());
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("User problems retrieved successfully");
+            response.setData(userDTO.getProblems()); // Utilisation directe de la liste de ProblemDTO
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error retrieving user problems: " + e.getMessage());
         }
         return response;
     }
 
     @Override
-    public Response getMyInfo(String email) {
-        Response response = new Response();
+    public Response<UserDTO> getMyInfo(String email) {
+        Response<UserDTO> response = new Response<>();
         try {
-            User user = userRepository.findByEmail(email).orElseThrow(() -> new OurException("User not found"));
+            // Récupérer l'utilisateur par son email
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new OurException("User not found with email: " + email));
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(user);
-            response.setStatusCode(200);
-            response.setUser(userDTO);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("User info retrieved successfully");
+            response.setData(userDTO); // Utilisation de setData pour une réponse unique
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500);
+            response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error retrieving user info: " + e.getMessage());
         }
         return response;

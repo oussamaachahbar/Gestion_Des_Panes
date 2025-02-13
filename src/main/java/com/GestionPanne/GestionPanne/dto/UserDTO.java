@@ -7,10 +7,10 @@ public class UserDTO {
     private long id;
     private String name;
     private String email;
-    //sans password
     private String phone;
     private String role;
     private boolean isSupervisor;
-    private long postId;
-    private List<ProblemDTO> problems;// Chaque utilisateur est assigné à UN SEUL poste
+    private long postId; // Ou PostDTO si nécessaire
+    private List<Long> problemIds;
+    private List<ProblemDTO> problems; // Liste de problèmes
 }

@@ -1,22 +1,26 @@
 package com.GestionPanne.GestionPanne.service.Interface;
 import java.util.List;
+
+import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Problem;
+import com.GestionPanne.GestionPanne.entity.Project;
+
 public interface IProblemService
 {
-    Response reportProblem(Long userId, Long postId, Problem problemRequest);
+    Response<ProblemDTO> reportProblem(Long userId, Long postId, Problem problemRequest);
 
-    Response getAllProblems();
+    Response<List<ProblemDTO>> getAllProblems();
 
-    Response getProblemById(Long problemId);
+    Response<ProblemDTO> getProblemById(Long problemId);
 
-    Response updateProblem(Long problemId, Problem problemRequest);
+    Response<ProblemDTO> updateProblem(Long problemId, Problem problemRequest);
 
-    Response deleteProblem(Long problemId);
+    Response<Void> deleteProblem(Long problemId);
 
-    Response getProblemsByPost(Long postId);
+    Response<List<ProblemDTO>> getProblemsByPost(Long postId);
 
-    Response getProblemsByUser(Long userId);
+    Response<List<ProblemDTO>> getProblemsByUser(Long userId);
 
 
 }
