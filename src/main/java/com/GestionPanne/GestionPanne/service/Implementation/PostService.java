@@ -3,23 +3,29 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Post;
+import com.GestionPanne.GestionPanne.entity.Project;
+import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.PostRepository;
+import com.GestionPanne.GestionPanne.repo.ProjectRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IPostService;
 import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PostService implements IPostService {
 
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Override
-    public Response<PostDTO> createPost(Post postRequest) {
+    public Response<PostDTO> createPost(Long project_id, Post postRequest) {
         Response<PostDTO> response = new Response<>();
         try {
             // Vérifier si le post existe déjà par son nom
@@ -27,7 +33,24 @@ public class PostService implements IPostService {
                 throw new OurException("Post with name '" + postRequest.getName() + "' already exists.");
             }
 
-            // Sauvegarder le nouveau post
+            if (project_id == null) {
+                throw new OurException("Project ID cannot be null");
+            }
+
+            Project project = projectRepository.findById(project_id)
+                    .orElseThrow(() -> new OurException("Project not found with ID: " + project_id));
+
+            // Vérifier qu'il y a au plus un superviseur dans le post
+            long supervisorCount = postRequest.getUsers().stream()
+                    .filter(User::getIsSupervisor) // Filtre les superviseurs
+                    .count();
+
+            if (supervisorCount > 1) {
+                throw new OurException("A post can only have one supervisor.");
+            }
+
+            postRequest.setProject(project);
+
             Post savedPost = postRepository.save(postRequest);
             PostDTO postDTO = Utils.mapPostEntityToPostDTO(savedPost);
 
@@ -44,6 +67,7 @@ public class PostService implements IPostService {
         }
         return response;
     }
+
 
     @Override
     public Response<List<PostDTO>> getAllPosts() {
@@ -88,31 +112,46 @@ public class PostService implements IPostService {
     }
 
     @Override
-    public Response<PostDTO> updatePost(Post postRequest) {
+    public Response<PostDTO> updatePost(Long postId, Post postRequest) {
         Response<PostDTO> response = new Response<>();
         try {
-            // Vérifier si le post existe
-            if (!postRepository.existsById(Math.toIntExact(postRequest.getId()))) {
-                throw new OurException("Post not found with ID: " + postRequest.getId());
+            Post existingPost = postRepository.findById(postId);
+
+            if (postRequest.getName() != null) {
+                existingPost.setName(postRequest.getName());
+            }
+            if (postRequest.getDescription() != null) {
+                existingPost.setDescription(postRequest.getDescription());
+            }
+            if (postRequest.getPosition() != null) {
+                existingPost.setPosition(postRequest.getPosition());
+            }
+            if (postRequest.getProject() != null) {
+                existingPost.setProject(postRequest.getProject());
+            }
+            if (postRequest.getUsers() != null) {
+                existingPost.setUsers(postRequest.getUsers());
+            }
+            if (postRequest.getProblems() != null) {
+                existingPost.setProblems(postRequest.getProblems());
             }
 
-            // Mettre à jour le post
-            Post updatedPost = postRepository.save(postRequest);
+            Post updatedPost = postRepository.save(existingPost);
             PostDTO postDTO = Utils.mapPostEntityToPostDTO(updatedPost);
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Post updated successfully");
-            response.setData(postDTO); // Utilisation de setData pour une réponse unique
+            response.setData(postDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error updating post: " + e.getMessage());
         }
         return response;
     }
+
 
     @Override
     public Response<Void> deletePost(Long postId) {

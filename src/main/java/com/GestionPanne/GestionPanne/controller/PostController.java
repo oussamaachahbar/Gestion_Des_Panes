@@ -12,18 +12,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/workstations")
+@RequestMapping("/Post")
 public class PostController {
 
     @Autowired
     private PostService workstationService;
 
-    // Créer un poste de travail
-    @PostMapping("/add")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/add/{project}")
 
-    public ResponseEntity<Response<PostDTO>> createWorkstation(@RequestBody Post workstationDTO) {
-        Response<PostDTO> response= workstationService.createPost(workstationDTO);
+    public ResponseEntity<Response<PostDTO>> createWorkstation(@PathVariable Long project,@RequestBody Post workstationDTO) {
+        Response<PostDTO> response= workstationService.createPost(project,workstationDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
@@ -35,21 +33,18 @@ public class PostController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // Récupérer un poste de travail par son ID
     @GetMapping("/getWorkstationById/{id}")
     public ResponseEntity<Response<PostDTO>> getWorkstationById(@PathVariable Long id) {
         Response<PostDTO> response= workstationService.getPostById(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // Mettre à jour un poste de travail
     @PutMapping("/updateWorkstation/{id}")
-    public ResponseEntity<Response<PostDTO>> updateWorkstation( @RequestBody Post workstationDTO) {
-        Response<PostDTO> response= workstationService.updatePost( workstationDTO);
+    public ResponseEntity<Response<PostDTO>> updateWorkstation(@PathVariable Long id ,@RequestBody Post workstationDTO) {
+        Response<PostDTO> response= workstationService.updatePost(id, workstationDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // Supprimer un poste de travail
     @DeleteMapping("/deleteWorkstation/{id}")
     public ResponseEntity<Response<Void>> deleteWorkstation(@PathVariable Long id) {
 

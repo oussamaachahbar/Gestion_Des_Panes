@@ -192,4 +192,9 @@ public class ProjectService implements IProjectService {
         }
         return response;
     }
+
+    @Override
+    public Response<ProjectDTO> assignWorkstationToProject(Long projectId, Long workstationId) {
+        return null;
+    }
 }

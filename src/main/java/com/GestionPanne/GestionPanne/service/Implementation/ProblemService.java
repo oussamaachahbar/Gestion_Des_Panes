@@ -2,9 +2,7 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 
 import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
-import com.GestionPanne.GestionPanne.entity.Post;
-import com.GestionPanne.GestionPanne.entity.Problem;
-import com.GestionPanne.GestionPanne.entity.User;
+import com.GestionPanne.GestionPanne.entity.*;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.PostRepository;
 import com.GestionPanne.GestionPanne.repo.ProblemRepository;
@@ -12,7 +10,9 @@ import com.GestionPanne.GestionPanne.repo.UserRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IProblemService;
 import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.mail.SimpleMailMessage;
 
 import java.util.Calendar;
 import java.util.List;
@@ -29,42 +29,86 @@ public class ProblemService implements IProblemService {
     @Autowired
     private ProblemRepository problemRepository;
 
+    @Autowired
+    private JavaMailSender mailSender;
+
     @Override
     public Response<ProblemDTO> reportProblem(Long userId, Long postId, Problem problemRequest) {
         Response<ProblemDTO> response = new Response<>();
         try {
-            // Vérifier les entrées
             if (userId == null || postId == null || problemRequest == null) {
                 throw new IllegalArgumentException("L'utilisateur, le poste et le rapport de problème ne peuvent pas être nulls.");
             }
 
-            // Récupérer l'utilisateur et le post
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new OurException("Utilisateur non trouvé avec l'ID : " + userId));
+
+            // Vérification que l'utilisateur est un superviseur
+            if (Boolean.FALSE.equals(user.getIsSupervisor())) {
+                throw new OurException("Seuls les superviseurs peuvent signaler un problème.");
+            }
+
             Post post = postRepository.findById(Math.toIntExact(postId))
                     .orElseThrow(() -> new OurException("Poste non trouvé avec l'ID : " + postId));
 
-            // Associer l'utilisateur et le post au problème
+            // Vérification que l'utilisateur appartient bien à ce poste
+            if (!post.getUsers().contains(user)) {
+                throw new OurException("L'utilisateur ne fait pas partie de ce poste.");
+            }
+
             problemRequest.setUser(user);
             problemRequest.setPost(post);
 
+            // Définition d'une priorité par défaut si non spécifiée
+            if (problemRequest.getPriority() == null) {
+                problemRequest.setPriority(Priority.MEDIUM);
+            }
+
+            // État initial du problème
+            problemRequest.setEtat(Etat.PENDING);
+
+            // Sauvegarde du problème
             Problem savedProblem = problemRepository.save(problemRequest);
 
-            response.setStatusCode(201); // 201 Created
+            // Envoi de l'email de signalement
+            sendProblemReportEmail(savedProblem);
+
+            response.setStatusCode(201);
             response.setMessage("Problème signalé avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(savedProblem));
         } catch (IllegalArgumentException e) {
-            response.setStatusCode(400); // 400 Bad Request
+            response.setStatusCode(400);
             response.setMessage("Entrée invalide : " + e.getMessage());
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(403); // Accès refusé
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Erreur interne : " + e.getMessage());
         }
         return response;
     }
+
+
+
+    private void sendProblemReportEmail(Problem problem) {
+        try {
+            System.out.println("📩 Envoi de l'email en cours...");
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo("oussamaachahbar.bac2019@gmail.com");
+            message.setSubject("Nouveau problème signalé");
+            message.setText("Un nouveau problème a été signalé par " + problem.getUser().getUsername() +
+                    " sur le poste " + problem.getPost().getName() + " avec la priorité " + problem.getPriority().name());
+
+            mailSender.send(message);
+
+            System.out.println("✅ Email envoyé avec succès !");
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de l'envoi de l'email : " + e.getMessage());
+        }
+    }
+
 
     @Override
     public Response<List<ProblemDTO>> getAllProblems() {
@@ -202,11 +246,48 @@ public class ProblemService implements IProblemService {
 
     @Override
     public Response<ProblemDTO> validateProblem(Long id) {
-        return null;
+        Response<ProblemDTO> response = new Response<>();
+        try {
+            Problem problem = problemRepository.findById(Math.toIntExact(id))
+                    .orElseThrow(() -> new OurException("Problème avec l'ID " + id + " introuvable."));
+
+            problem.setEtat(Etat.FINISHED);
+            Problem updatedProblem = problemRepository.save(problem);
+
+            response.setStatusCode(200);
+            response.setMessage("Problème validé avec succès.");
+            response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));
+        } catch (OurException e) {
+            response.setStatusCode(404);
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Erreur interne : " + e.getMessage());
+        }
+        return response;
     }
 
     @Override
-    public Response<ProblemDTO> assignProblemToTeam(Long id, Long teamId) {
-        return null;
+    public Response<ProblemDTO> assignProblemToTeam(Long id) {
+        Response<ProblemDTO> response = new Response<>();
+        try {
+            Problem problem = problemRepository.findById(Math.toIntExact(id))
+                    .orElseThrow(() -> new OurException("Problème avec l'ID " + id + " introuvable."));
+
+            problem.setEtat(Etat.EN_PROGRESS);
+            Problem updatedProblem = problemRepository.save(problem);
+
+            response.setStatusCode(200);
+            response.setMessage("Problème assigné avec succès.");
+            response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));
+        } catch (OurException e) {
+            response.setStatusCode(404);
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Erreur interne : " + e.getMessage());
+        }
+        return response;
     }
+
 }

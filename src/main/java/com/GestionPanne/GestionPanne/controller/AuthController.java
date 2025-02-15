@@ -7,10 +7,7 @@ import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.service.Interface.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -19,9 +16,9 @@ public class AuthController {
     @Autowired
     private IUserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<Response<UserDTO>> register(@RequestBody User user) {
-        Response<UserDTO> response = userService.registre(user);
+    @PostMapping("/add/{postId}")
+    public ResponseEntity<Response<UserDTO>> createUser(@PathVariable Long postId, @RequestBody User user) {
+        Response<UserDTO> response = userService.registre(postId, user);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 

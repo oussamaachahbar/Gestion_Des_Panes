@@ -4,8 +4,10 @@ import com.GestionPanne.GestionPanne.dto.LoginRequest;
 import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.UserDTO;
+import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
+import com.GestionPanne.GestionPanne.repo.PostRepository;
 import com.GestionPanne.GestionPanne.repo.UserRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IUserService;
 import com.GestionPanne.GestionPanne.utils.JWTUtils;
@@ -17,13 +19,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService implements IUserService {
 
     @Autowired
     private UserRepository userRepository;
-
+    @Autowired
+    private PostRepository postRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -34,34 +38,46 @@ public class UserService implements IUserService {
     private AuthenticationManager authenticationManager;
 
     @Override
-    public Response<UserDTO> registre(User user) {
+    public Response<UserDTO> registre(Long postId, User user) {
         Response<UserDTO> response = new Response<>();
         try {
-            // Vérifier si l'email existe déjà
             if (userRepository.existsByEmail(user.getEmail())) {
                 throw new OurException("Email already exists: " + user.getEmail());
             }
 
-            // Encoder le mot de passe
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            if (postId == null) {
+                throw new OurException("Post ID cannot be null");
+            }
 
-            // Sauvegarder l'utilisateur
+            Post post = postRepository.findById(postId);
+
+
+            // Vérifier si le post a déjà un superviseur
+            boolean hasSupervisor = post.getUsers().stream().anyMatch(User::getIsSupervisor);
+
+            if (user.getIsSupervisor() && hasSupervisor) {
+                throw new OurException("This post already has a supervisor. Only one supervisor is allowed per post.");
+            }
+
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setPost(post);
+
             User savedUser = userRepository.save(user);
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(savedUser);
 
-            // Construire la réponse
-            response.setStatusCode(201); // 201 Created
+            response.setStatusCode(201);
             response.setMessage("User registered successfully");
-            response.setData(userDTO); // Utilisation de setData pour une réponse unique
+            response.setData(userDTO);
         } catch (OurException e) {
-            response.setStatusCode(400); // 400 Bad Request
+            response.setStatusCode(400);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error occurred during user registration: " + e.getMessage());
         }
         return response;
     }
+
 
     @Override
     public Response<String> login(LoginRequest loginRequest) {
@@ -138,34 +154,47 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Response<UserDTO> updateUser(User user) {
+    public Response<UserDTO> updateUser(Long userId, User user) {
         Response<UserDTO> response = new Response<>();
         try {
-            // Vérifier si l'utilisateur existe
-            if (!userRepository.existsById(user.getId())) {
-                throw new OurException("User not found with ID: " + user.getId());
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (!userOpt.isPresent()) {
+                throw new OurException("User not found with ID: " + userId);
             }
 
-            // Encoder le mot de passe
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            User existingUser = userOpt.get();
 
-            // Mettre à jour l'utilisateur
-            User updatedUser = userRepository.save(user);
-            UserDTO userDTO = Utils.mapUserEntityToUserDTO(updatedUser);
+            existingUser.setEmail(user.getEmail());
+            existingUser.setRole(user.getRole());
+            existingUser.setPhone(user.getPhone());
+            existingUser.setName(user.getName());
+            existingUser.setIsSupervisor(user.getIsSupervisor());
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            // Vérifier que le champ `post` n'est pas null avant de l'affecter
+            if (user.getPost() != null) {
+                existingUser.setPost(user.getPost());
+            }
+
+            // Vérifier si un nouveau mot de passe a été fourni
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+            }
+
+            User updatedUser = userRepository.save(existingUser);
+            response.setStatusCode(200);
             response.setMessage("User updated successfully");
-            response.setData(userDTO); // Utilisation de setData pour une réponse unique
+            response.setData(Utils.mapUserEntityToUserDTO(updatedUser));
+
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error updating user: " + e.getMessage());
         }
         return response;
     }
+
 
     @Override
     public Response<Void> deleteUser(long id) {

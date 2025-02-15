@@ -10,7 +10,7 @@ public interface IFamilyService {
 
     Response<FamilyDTO> getFamilyById(Long familyId);
 
-    Response<FamilyDTO> updateFamily( Family familyRequest);
+    Response<FamilyDTO> updateFamily(Long family_id, Family familyRequest);
 
     Response<Void> deleteFamily(Long familyId);
 

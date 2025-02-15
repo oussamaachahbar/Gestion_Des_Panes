@@ -3,6 +3,7 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 import com.GestionPanne.GestionPanne.dto.FamilyDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Family;
+import com.GestionPanne.GestionPanne.entity.Filiere;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.FamilyRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IFamilyService;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FamilyService implements IFamilyService {
@@ -85,16 +87,17 @@ public class FamilyService implements IFamilyService {
     }
 
     @Override
-    public Response<FamilyDTO> updateFamily(Family familyRequest) {
+    public Response<FamilyDTO> updateFamily(Long familyid,Family familyRequest) {
         Response<FamilyDTO> response = new Response<>();
         try {
             // Vérifier si la famille existe
-            if (!familyRepository.existsById(familyRequest.getId())) {
+            if (!familyRepository.existsById(familyid)) {
                 throw new OurException("Family not found with ID: " + familyRequest.getId());
             }
-
-            // Mettre à jour la famille
-            Family updatedFamily = familyRepository.save(familyRequest);
+            Optional<Family> familleOpt = familyRepository.findById(familyid);
+            Family existingFamille= familleOpt.get();
+            existingFamille.setName(familyRequest.getName());
+            Family updatedFamily = familyRepository.save(existingFamille);
             FamilyDTO familyDTO = Utils.mapFamilyEntityToFamilyDTO(updatedFamily);
 
             // Construire la réponse

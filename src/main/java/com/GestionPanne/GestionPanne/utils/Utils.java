@@ -32,6 +32,7 @@ public class Utils {
         userDTO.setPhone(user.getPhone());
         userDTO.setRole(user.getRole());
         userDTO.setSupervisor(user.isSupervisor());
+        userDTO.setPostId(user.getPost().getId());
         return userDTO;
     }
 
@@ -80,7 +81,7 @@ public class Utils {
         ProblemDTO problemDTO = new ProblemDTO();
         problemDTO.setId(problem.getId());
         problemDTO.setUserId(problem.getUser().getId());
-        problemDTO.setUserId(problem.getPost().getId());
+        problemDTO.setPostId(problem.getPost().getId());
         problemDTO.setFailureDate(problem.getFailureDate());
         problemDTO.setSolutionDate(problem.getSolutionDate());
         problemDTO.setFailureDetails(problem.getFailureDetails());

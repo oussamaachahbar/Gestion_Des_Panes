@@ -3,6 +3,7 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 import com.GestionPanne.GestionPanne.dto.FiliereDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Filiere;
+import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.FiliereRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IFiliereService;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FiliereService implements IFiliereService {
@@ -107,9 +109,12 @@ public class FiliereService implements IFiliereService {
             if (!filiereRepository.existsById(filiereId)) {
                 throw new OurException("Filiere not found with ID: " + filiereId);
             }
-
-            filiereRequest.setId(filiereId); // S'assurer que l'ID est correct
-            Filiere updatedFiliere = filiereRepository.save(filiereRequest);
+            Optional<Filiere> filiereOpt = filiereRepository.findById(filiereId);
+            Filiere existingFiliere = filiereOpt.get();
+            existingFiliere.setName(filiereRequest.getName());
+            existingFiliere.setCity(filiereRequest.getCity());
+            existingFiliere.setCountry(filiereRequest.getCountry());
+            Filiere updatedFiliere = filiereRepository.save(existingFiliere);
             FiliereDTO filiereDTO = Utils.mapFiliereEntityToFiliereDTO(updatedFiliere);
 
             // Construire la réponse

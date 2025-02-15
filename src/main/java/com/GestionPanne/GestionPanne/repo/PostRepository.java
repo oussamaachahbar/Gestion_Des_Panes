@@ -7,5 +7,7 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Integer> {
     boolean existsByName(String name);
 
+    Post findById(Long postId);
+
     // Correction du type ID
 }

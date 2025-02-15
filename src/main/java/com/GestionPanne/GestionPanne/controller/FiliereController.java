@@ -12,14 +12,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/filieres")
+@RequestMapping("/Filiere")
 public class FiliereController {
 
     @Autowired
     private IFiliereService filiereService;
 
     @PostMapping("/add")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<FiliereDTO>> createFiliere(@RequestBody Filiere filiereDTO) {
         Response<FiliereDTO> response=  filiereService.createFiliere(filiereDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
