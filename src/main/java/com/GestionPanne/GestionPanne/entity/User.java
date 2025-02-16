@@ -30,8 +30,19 @@ public class User implements UserDetails {
     private Boolean isSupervisor;  // ✅ Correction : Boolean au lieu de boolean pour éviter les erreurs
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id", nullable = true)
     private Post post;
+    public Post getPost() {
+        return "ADMIN".equals(this.role) ? null : post;
+    }
+
+    public void setPost(Post post) {
+        if (!"ADMIN".equals(this.role)) {
+            this.post = post;
+        } else {
+            this.post = null; // Empêcher l'assignation pour un ADMIN
+        }
+    }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
@@ -69,6 +80,7 @@ public class User implements UserDetails {
     }
 
     public boolean isSupervisor() {
-        return true;
+        return !"ADMIN".equals(this.role) && this.isSupervisor;
     }
+
 }

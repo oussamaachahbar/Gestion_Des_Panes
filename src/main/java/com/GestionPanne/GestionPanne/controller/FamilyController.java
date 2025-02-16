@@ -16,7 +16,9 @@ public class FamilyController {
 
     @Autowired
     private IFamilyService familyService;
+
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
 
     public ResponseEntity<Response<FamilyDTO>> createFamily(@RequestBody Family familyDTO) {
         Response <FamilyDTO> response= familyService.createFamily(familyDTO);
@@ -40,6 +42,7 @@ public class FamilyController {
     }
 
     @PutMapping("/updateFamily/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<FamilyDTO>> updateFamily(@PathVariable Long id, @RequestBody Family familyDTO) {
         Response<FamilyDTO> response= familyService.updateFamily(id,familyDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -47,6 +50,7 @@ public class FamilyController {
     }
 
     @DeleteMapping("/deleteFamily/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteFamily(@PathVariable Long id) {
         Response<Void> response= familyService.deleteFamily(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);

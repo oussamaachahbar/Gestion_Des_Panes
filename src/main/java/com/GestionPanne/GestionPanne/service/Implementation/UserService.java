@@ -45,22 +45,24 @@ public class UserService implements IUserService {
                 throw new OurException("Email already exists: " + user.getEmail());
             }
 
-            if (postId == null) {
-                throw new OurException("Post ID cannot be null");
+            // Si l'utilisateur est ADMIN, ne pas assigner de post
+            if ("ADMIN".equals(user.getRole())) {
+                postId = null;
             }
 
-            Post post = postRepository.findById(postId);
+            Post post = null;
+            if (postId != null) {
+                post = postRepository.findById(postId);
 
-
-            // Vérifier si le post a déjà un superviseur
-            boolean hasSupervisor = post.getUsers().stream().anyMatch(User::getIsSupervisor);
-
-            if (user.getIsSupervisor() && hasSupervisor) {
-                throw new OurException("This post already has a supervisor. Only one supervisor is allowed per post.");
+                // Vérifier si le post a déjà un superviseur
+                boolean hasSupervisor = post.getUsers().stream().anyMatch(User::getIsSupervisor);
+                if (user.getIsSupervisor() && hasSupervisor) {
+                    throw new OurException("This post already has a supervisor. Only one supervisor is allowed per post.");
+                }
             }
 
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setPost(post);
+            user.setPost(post); // Assigne null si l'utilisateur est ADMIN
 
             User savedUser = userRepository.save(user);
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(savedUser);
@@ -77,6 +79,7 @@ public class UserService implements IUserService {
         }
         return response;
     }
+
 
 
     @Override
@@ -101,6 +104,7 @@ public class UserService implements IUserService {
             response.setData(token); // Utilisation de setData pour le token
             response.setRole(user.getRole());
             response.setExpirationTime("7 Days");
+            response.setToken(token);
         } catch (OurException e) {
             response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());

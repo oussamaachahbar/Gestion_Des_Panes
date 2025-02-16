@@ -6,6 +6,7 @@ import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.service.Interface.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class UserController {
     private IUserService userService;
 
     @PostMapping("/add/{postId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<UserDTO>> createUser(@PathVariable Long postId, @RequestBody User user) {
         Response<UserDTO> response = userService.registre(postId, user);
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -36,12 +38,14 @@ public class UserController {
     }
 
     @PutMapping("/updateUser/{id}")
+
     public ResponseEntity<Response<UserDTO>> updateUser(@PathVariable Long id, @RequestBody User user) {
         Response<UserDTO> response = userService.updateUser(id, user);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @DeleteMapping("/deleteUser/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteUser(@PathVariable Long id) {
         Response<Void> response = userService.deleteUser(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);

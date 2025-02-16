@@ -21,6 +21,7 @@ public class ProjectController {
     private ProjectService projectService;
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
 
     public ResponseEntity<Response<ProjectDTO>> createProject(@RequestBody Project projectDTO) {
         Response<ProjectDTO> response= projectService.createProject(projectDTO);
@@ -44,12 +45,14 @@ public class ProjectController {
     }
 
     @PutMapping("/updateProject/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProjectDTO>> updateProject( @RequestBody Project projectDTO) {
         Response<ProjectDTO> response= projectService.updateProject(projectDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @DeleteMapping("/deleteProject/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteProject(@PathVariable Long id) {
             Response<Void> response= projectService.deleteProject(id);
             return ResponseEntity.status(response.getStatusCode()).body(response);

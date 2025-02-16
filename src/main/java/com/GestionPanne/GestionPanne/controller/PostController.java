@@ -19,6 +19,7 @@ public class PostController {
     private PostService workstationService;
 
     @PostMapping("/add/{project}")
+    @PreAuthorize("hasAuthority('ADMIN')")
 
     public ResponseEntity<Response<PostDTO>> createWorkstation(@PathVariable Long project,@RequestBody Post workstationDTO) {
         Response<PostDTO> response= workstationService.createPost(project,workstationDTO);
@@ -40,12 +41,14 @@ public class PostController {
     }
 
     @PutMapping("/updateWorkstation/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<PostDTO>> updateWorkstation(@PathVariable Long id ,@RequestBody Post workstationDTO) {
         Response<PostDTO> response= workstationService.updatePost(id, workstationDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @DeleteMapping("/deleteWorkstation/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteWorkstation(@PathVariable Long id) {
 
         Response<Void> response= workstationService.deletePost(id);

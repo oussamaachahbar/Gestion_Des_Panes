@@ -28,17 +28,28 @@ public class PostService implements IPostService {
     public Response<PostDTO> createPost(Long project_id, Post postRequest) {
         Response<PostDTO> response = new Response<>();
         try {
-            // Vérifier si le post existe déjà par son nom
+            // Vérifier si un post avec le même nom existe déjà
             if (postRepository.existsByName(postRequest.getName())) {
                 throw new OurException("Post with name '" + postRequest.getName() + "' already exists.");
             }
 
             if (project_id == null) {
-                throw new OurException("Project ID cannot be null");
+                throw new OurException("Project ID cannot be null.");
             }
 
+            // Vérifier si le postRequest contient déjà un projet assigné
+            if (postRequest.getProject() != null) {
+                throw new OurException("This post is already assigned to a project and cannot be reassigned.");
+            }
+
+            // Vérifier si le projet existe
             Project project = projectRepository.findById(project_id)
                     .orElseThrow(() -> new OurException("Project not found with ID: " + project_id));
+
+            // Vérifier si le projet contient déjà un post associé
+            if (postRepository.existsByProject(project)) {
+                throw new OurException("A post is already assigned to this project.");
+            }
 
             // Vérifier qu'il y a au plus un superviseur dans le post
             long supervisorCount = postRequest.getUsers().stream()
@@ -49,8 +60,10 @@ public class PostService implements IPostService {
                 throw new OurException("A post can only have one supervisor.");
             }
 
+            // Associer le projet au post
             postRequest.setProject(project);
 
+            // Sauvegarde du post
             Post savedPost = postRepository.save(postRequest);
             PostDTO postDTO = Utils.mapPostEntityToPostDTO(savedPost);
 
@@ -67,6 +80,8 @@ public class PostService implements IPostService {
         }
         return response;
     }
+
+
 
 
     @Override

@@ -32,9 +32,15 @@ public class Utils {
         userDTO.setPhone(user.getPhone());
         userDTO.setRole(user.getRole());
         userDTO.setSupervisor(user.isSupervisor());
-        userDTO.setPostId(user.getPost().getId());
+
+        // Vérification si le rôle est "ADMIN" en comparant directement avec une chaîne
+        if (!"ADMIN".equals(user.getRole())) {
+            userDTO.setPostId(user.getPost() != null ? user.getPost().getId() : null);
+        }
+
         return userDTO;
     }
+
 
     // 🟢 Mapping de l'entité Project vers ProjectDTO
     public static ProjectDTO mapProjectEntityToProjectDTO(Project project) {

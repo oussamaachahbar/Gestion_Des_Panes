@@ -20,6 +20,7 @@ public class ProblemController {
     private ProblemService problemService;
 
     @PostMapping("/add/{userId}/{postId}")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
     public ResponseEntity<Response<ProblemDTO>> reportProblem(@PathVariable Long userId,
                                                               @PathVariable Long postId,
                                                               @RequestBody Problem problemDTO) {
@@ -28,6 +29,7 @@ public class ProblemController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<List<ProblemDTO>>> getAllProblems() {
         Response<List<ProblemDTO>> response = problemService.getAllProblems();
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -46,18 +48,21 @@ public class ProblemController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteProblem(@PathVariable Long id) {
         Response<Void> response = problemService.deleteProblem(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping("/validate/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProblemDTO>> validateProblem(@PathVariable Long id) {
         Response<ProblemDTO> response = problemService.validateProblem(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping("/assign/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProblemDTO>> assignProblemToTeam(@PathVariable Long id) {
         Response<ProblemDTO> response = problemService.assignProblemToTeam(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);

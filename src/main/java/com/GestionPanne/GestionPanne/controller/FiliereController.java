@@ -19,6 +19,7 @@ public class FiliereController {
     private IFiliereService filiereService;
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<FiliereDTO>> createFiliere(@RequestBody Filiere filiereDTO) {
         Response<FiliereDTO> response=  filiereService.createFiliere(filiereDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -40,6 +41,7 @@ public class FiliereController {
     }
 
     @PutMapping("/updateFiliere/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<FiliereDTO>> updateFiliere(@PathVariable Long id, @RequestBody Filiere filiereDTO) {
         Response<FiliereDTO> response= filiereService.updateFiliere(id, filiereDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -47,6 +49,7 @@ public class FiliereController {
     }
 
     @DeleteMapping("/deleteFiliere/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteFiliere(@PathVariable Long id) {
         Response<Void> response= filiereService.deleteFiliere(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
