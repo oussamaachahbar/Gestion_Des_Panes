@@ -19,7 +19,6 @@ public class PostController {
     private PostService workstationService;
 
     @PostMapping("/add/{project}")
-    @PreAuthorize("hasAuthority('ADMIN')")
 
     public ResponseEntity<Response<PostDTO>> createWorkstation(@PathVariable Long project,@RequestBody Post workstationDTO) {
         Response<PostDTO> response= workstationService.createPost(project,workstationDTO);

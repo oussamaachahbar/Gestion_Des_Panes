@@ -79,6 +79,8 @@ public class Utils {
         postDTO.setPosition(post.getPosition());
         postDTO.setProjectId(post.getProject().getId());
         postDTO.setUsers(post.getUsers().stream().map(Utils::mapUserEntityToUserDTO).collect(Collectors.toList()));
+        postDTO.setProblems(post.getProblems().stream().map(Utils::mapProblemEntityToProblemDTO).collect(Collectors.toList()));
+
         return postDTO;
     }
 

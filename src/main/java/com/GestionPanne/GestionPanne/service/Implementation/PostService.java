@@ -13,6 +13,7 @@ import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,26 +43,23 @@ public class PostService implements IPostService {
                 throw new OurException("This post is already assigned to a project and cannot be reassigned.");
             }
 
+
             // Vérifier si le projet existe
             Project project = projectRepository.findById(project_id)
                     .orElseThrow(() -> new OurException("Project not found with ID: " + project_id));
 
-            // Vérifier si le projet contient déjà un post associé
-            if (postRepository.existsByProject(project)) {
-                throw new OurException("A post is already assigned to this project.");
-            }
 
-            // Vérifier qu'il y a au plus un superviseur dans le post
-            long supervisorCount = postRequest.getUsers().stream()
-                    .filter(User::getIsSupervisor) // Filtre les superviseurs
-                    .count();
 
-            if (supervisorCount > 1) {
-                throw new OurException("A post can only have one supervisor.");
-            }
 
             // Associer le projet au post
             postRequest.setProject(project);
+            if (postRequest.getUsers() == null) {
+                postRequest.setUsers(new ArrayList<>());
+            }
+            
+            if (postRequest.getProblems() == null) {
+                postRequest.setProblems(new ArrayList<>());
+            }
 
             // Sauvegarde du post
             Post savedPost = postRepository.save(postRequest);

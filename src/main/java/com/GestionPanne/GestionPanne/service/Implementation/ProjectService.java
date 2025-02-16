@@ -10,6 +10,7 @@ import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,11 +28,13 @@ public class ProjectService implements IProjectService {
                 throw new OurException("Project with name '" + project.getNameProject() + "' already exists.");
             }
 
-            // Sauvegarder le nouveau projet
+            if (project.getPosts() == null) {
+                project.setPosts(new ArrayList<>());
+            }
+
             Project savedProject = projectRepository.save(project);
             ProjectDTO projectDTO = Utils.mapProjectEntityToProjectDTO(savedProject);
 
-            // Construire la réponse
             response.setStatusCode(201); // 201 Created
             response.setMessage("Project created successfully");
             response.setData(projectDTO); // Utilisation de setData pour une réponse unique
@@ -44,6 +47,7 @@ public class ProjectService implements IProjectService {
         }
         return response;
     }
+
 
     @Override
     public Response<List<ProjectDTO>> getAllProjects() {
