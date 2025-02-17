@@ -21,8 +21,9 @@ public class Post {
     private String position;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
+    @JoinColumn(name = "project_id", nullable = true) // nullable = true permet d'avoir un projet null
     private Project project;
+
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude

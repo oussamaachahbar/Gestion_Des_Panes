@@ -53,6 +53,7 @@ public class ProjectController {
 
     @DeleteMapping("/deleteProject/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
+
     public ResponseEntity<Response<Void>> deleteProject(@PathVariable Long id) {
             Response<Void> response= projectService.deleteProject(id);
             return ResponseEntity.status(response.getStatusCode()).body(response);

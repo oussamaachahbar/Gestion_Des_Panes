@@ -7,6 +7,8 @@ import com.GestionPanne.GestionPanne.service.Interface.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,6 +40,7 @@ public class UserController {
     }
 
     @PutMapping("/updateUser/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
 
     public ResponseEntity<Response<UserDTO>> updateUser(@PathVariable Long id, @RequestBody User user) {
         Response<UserDTO> response = userService.updateUser(id, user);
@@ -48,6 +51,14 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteUser(@PathVariable Long id) {
         Response<Void> response = userService.deleteUser(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+    @GetMapping("/get-logged-in-profile-info")
+    public ResponseEntity<Response<UserDTO>> getLoggedInUserProfile() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Response<UserDTO> response = userService.getMyInfo(email);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }

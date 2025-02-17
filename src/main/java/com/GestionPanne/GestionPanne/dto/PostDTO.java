@@ -10,7 +10,6 @@ public class PostDTO {
     private String description;
     private String position;
     private long projectId; // Ou ProjectDTO si nécessaire
-    private List<Long> userIds; // IDs des utilisateurs
     private List<Long> problemIds;
     private List<UserDTO> users;
     private List<ProblemDTO> Problems;// IDs des problèmes

@@ -9,13 +9,19 @@ import com.GestionPanne.GestionPanne.repo.ProblemRepository;
 import com.GestionPanne.GestionPanne.repo.UserRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IProblemService;
 import com.GestionPanne.GestionPanne.utils.Utils;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.internet.MimeMessage;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+
 
 @Service
 public class ProblemService implements IProblemService {
@@ -32,6 +38,7 @@ public class ProblemService implements IProblemService {
     @Autowired
     private JavaMailSender mailSender;
 
+
     @Override
     public Response<ProblemDTO> reportProblem(Long userId, Long postId, Problem problemRequest) {
         Response<ProblemDTO> response = new Response<>();
@@ -45,7 +52,7 @@ public class ProblemService implements IProblemService {
 
             // Vérification que l'utilisateur est un superviseur
             if (Boolean.FALSE.equals(user.getIsSupervisor())) {
-                throw new OurException("Seuls les superviseurs peuvent signaler un problème.");
+                throw new OurException("Seuls les superviseurs et les admins peuvent signaler un problème.");
             }
 
             Post post = postRepository.findById(Math.toIntExact(postId))
@@ -64,8 +71,13 @@ public class ProblemService implements IProblemService {
                 problemRequest.setPriority(Priority.MEDIUM);
             }
 
-            // État initial du problème
+            // Définition de l'état initial
             problemRequest.setEtat(Etat.PENDING);
+
+            // Définition de failureDate par défaut si non fournie
+            if (problemRequest.getFailureDate() == null) {
+                problemRequest.setFailureDate(new Date()); // Date d'aujourd'hui
+            }
 
             // Sauvegarde du problème
             Problem savedProblem = problemRepository.save(problemRequest);
@@ -91,23 +103,98 @@ public class ProblemService implements IProblemService {
 
 
 
+
+
+
     private void sendProblemReportEmail(Problem problem) {
         try {
             System.out.println("📩 Envoi de l'email en cours...");
 
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo("oussamaachahbar.bac2019@gmail.com");
-            message.setSubject("Nouveau problème signalé");
-            message.setText("Un nouveau problème a été signalé par " + problem.getUser().getUsername() +
-                    " sur le poste " + problem.getPost().getName() + " avec la priorité " + problem.getPriority().name());
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            mailSender.send(message);
+            helper.setTo("oussamaachahbar.bac2019@gmail.com");
+            helper.setSubject("🔔 [Alerte] Nouveau Problème Signalé - " + problem.getPost().getName());
 
+            String emailContent = "<div style='font-family: Arial, sans-serif; color: #333; padding: 20px;'>"
+                    + "<h2 style='color: #d9534f;'>🚨 Nouveau Problème Signalé</h2>"
+                    + "<p><strong>Le Supervisor :</strong> " + problem.getUser().getUsername() + "</p>"
+                    + "<p><strong>Poste Concerné :</strong> " + problem.getPost().getName() + "</p>"
+                    + "<p><strong>Date de l'incident :</strong> " + problem.getFailureDate() + "</p>"
+                    + "<p><strong>Détails :</strong> " + problem.getFailureDetails() + "</p>"
+                    + "<p><strong>Priorité :</strong> <span style='color: " + getPriorityColor(problem.getPriority()) + "; font-weight: bold;'>"
+                    + problem.getPriority().name() + "</span></p>"
+
+                    + "<p><strong>État Actuel :</strong> <span style='color: "+ getEtatColor(problem.getEtat()) +"; font-weight: bold;'>" +
+                     problem.getEtat().name() + "</span></p>"
+                    + "<br/>"
+                    + "<p style='color: #555;'>Merci de prendre les mesures nécessaires.</p>"
+                    + "<hr style='border: none; height: 1px; background-color: #ddd;'/>"
+                    + "<p style='font-size: 12px; color: #777;'>Ce message est généré automatiquement, merci de ne pas répondre.</p>"
+                    + "</div>";
+
+            helper.setText(emailContent, true);
+
+            mailSender.send(mimeMessage);
             System.out.println("✅ Email envoyé avec succès !");
         } catch (Exception e) {
             System.err.println("❌ Erreur lors de l'envoi de l'email : " + e.getMessage());
         }
     }
+    private void sendProblemValidateEmail(Problem problem) {
+        try {
+            System.out.println("📩 Envoi de l'email en cours...");
+
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setTo("oussamaachahbar.bac2019@gmail.com");
+            helper.setSubject("🔔 [Alerte] Problème Finished - " + problem.getPost().getName());
+
+            String emailContent = "<div style='font-family: Arial, sans-serif; color: #333; padding: 20px;'>"
+                    + "<h2 style='color: #d9534f;'>🚨 Nouveau Problème Signalé</h2>"
+                    + "<p><strong>Le Supervisor qui signale le probleme est  :</strong> " + problem.getUser().getUsername() + "</p>"
+                    + "<p><strong>La Poste Fixé c'est :</strong> " + problem.getPost().getName() + "</p>"
+                    + "<p><strong>Date de la solution de cette poste est  :</strong> " + problem.getSolutionDate() + "</p>"
+                    + "<p><strong>Priorité :</strong> <span style='color: " + getPriorityColor(problem.getPriority()) + "; font-weight: bold;'>"
+                    + problem.getPriority().name() + "</span></p>"
+
+                    + "<p><strong>État Actuel :</strong> <span style='color: "+ getEtatColor(problem.getEtat()) +"; font-weight: bold;'>" +
+                    problem.getEtat().name() + "</span></p>"
+                    + "<br/>"
+                    + "<p style='color: #555;'>Merci de prendre les mesures nécessaires.</p>"
+                    + "<hr style='border: none; height: 1px; background-color: #ddd;'/>"
+                    + "<p style='font-size: 12px; color: #777;'>Ce message est généré automatiquement, merci de ne pas répondre.</p>"
+                    + "</div>";
+
+            helper.setText(emailContent, true);
+
+            mailSender.send(mimeMessage);
+            System.out.println("✅ Email envoyé avec succès !");
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de l'envoi de l'email : " + e.getMessage());
+        }
+    }
+
+    private String getEtatColor(Etat etat) {
+        switch (etat) {
+            case PENDING: return "#d9534f"; // Rouge
+            case EN_PROGRESS: return "#f0ad4e"; // Orange
+            case FINISHED: return "#5bc0de"; // Bleu
+            default: return "#333"; // Noir par défaut
+        }
+    }
+
+    private String getPriorityColor(Priority priority) {
+        switch (priority) {
+            case CRITICAL: return "#d9534f"; // Rouge
+            case HIGH: return "#f0ad4e"; // Orange
+            case MEDIUM: return "#5bc0de"; // Bleu
+            case LOW: return "#5cb85c"; // Vert
+            default: return "#333"; // Noir par défaut
+        }
+    }
+
 
 
     @Override
@@ -250,10 +337,12 @@ public class ProblemService implements IProblemService {
         try {
             Problem problem = problemRepository.findById(Math.toIntExact(id))
                     .orElseThrow(() -> new OurException("Problème avec l'ID " + id + " introuvable."));
-
+            if (problem.getSolutionDate() == null) {
+                problem.setSolutionDate(new Date()); // Date d'aujourd'hui
+            }
             problem.setEtat(Etat.FINISHED);
             Problem updatedProblem = problemRepository.save(problem);
-
+            sendProblemValidateEmail(updatedProblem);
             response.setStatusCode(200);
             response.setMessage("Problème validé avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));

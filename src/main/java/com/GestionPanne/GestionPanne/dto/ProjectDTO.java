@@ -9,6 +9,5 @@ public class ProjectDTO {
     private String nameProject;
     private long familyId; // Ou FamilyDTO si nécessaire
     private long filiereId; // Ou FiliereDTO si nécessaire
-    private List<Long> postIds;
-    private List<PostDTO> posts;// IDs des posts
+    // IDs des posts
 }

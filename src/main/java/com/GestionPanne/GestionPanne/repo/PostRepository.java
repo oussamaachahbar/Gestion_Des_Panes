@@ -16,4 +16,5 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     boolean existsByUsersContaining(User user);
 
 
+    List<Post> findByProjectId(long id);
 }

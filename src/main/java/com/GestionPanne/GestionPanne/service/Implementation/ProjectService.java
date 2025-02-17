@@ -2,8 +2,10 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 
 import com.GestionPanne.GestionPanne.dto.ProjectDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
+import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.Project;
 import com.GestionPanne.GestionPanne.exception.OurException;
+import com.GestionPanne.GestionPanne.repo.PostRepository;
 import com.GestionPanne.GestionPanne.repo.ProjectRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IProjectService;
 import com.GestionPanne.GestionPanne.utils.Utils;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -18,6 +21,8 @@ public class ProjectService implements IProjectService {
 
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private PostRepository postRepository;
 
     @Override
     public Response<ProjectDTO> createProject(long familyId, long filiereId, Project project) {
@@ -181,12 +186,19 @@ public class ProjectService implements IProjectService {
             Project project = projectRepository.findById(id)
                     .orElseThrow(() -> new OurException("Project not found with ID: " + id));
 
+            // Détacher les postes associés en mettant project_id à NULL
+            List<Post> posts = postRepository.findByProjectId(id);
+            for (Post post : posts) {
+                post.setProject(null); // Supprimer l'association avec le projet
+                postRepository.save(post); // Mettre à jour la base de données
+            }
+
             // Supprimer le projet
             projectRepository.delete(project);
 
             // Construire la réponse
             response.setStatusCode(200); // 200 OK
-            response.setMessage("Project deleted successfully");
+            response.setMessage("Project deleted successfully, assigned posts are now detached.");
         } catch (OurException e) {
             response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
@@ -196,6 +208,7 @@ public class ProjectService implements IProjectService {
         }
         return response;
     }
+
 
     @Override
     public Response<ProjectDTO> assignWorkstationToProject(Long projectId, Long workstationId) {

@@ -19,7 +19,7 @@ public class PostController {
     private PostService workstationService;
 
     @PostMapping("/add/{project}")
-
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<PostDTO>> createWorkstation(@PathVariable Long project,@RequestBody Post workstationDTO) {
         Response<PostDTO> response= workstationService.createPost(project,workstationDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
@@ -27,6 +27,7 @@ public class PostController {
     }
 
     @GetMapping("/all")
+
     public ResponseEntity<Response<List<PostDTO>>> getAllWorkstations() {
 
         Response<List<PostDTO>> response=  workstationService.getAllPosts();

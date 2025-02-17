@@ -29,10 +29,7 @@ public class PostService implements IPostService {
     public Response<PostDTO> createPost(Long project_id, Post postRequest) {
         Response<PostDTO> response = new Response<>();
         try {
-            // Vérifier si un post avec le même nom existe déjà
-            if (postRepository.existsByName(postRequest.getName())) {
-                throw new OurException("Post with name '" + postRequest.getName() + "' already exists.");
-            }
+
 
             if (project_id == null) {
                 throw new OurException("Project ID cannot be null.");

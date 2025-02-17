@@ -27,7 +27,7 @@ public class User implements UserDetails {
     private String email;
     private String phone;
     private String role;
-    private Boolean isSupervisor;  // ✅ Correction : Boolean au lieu de boolean pour éviter les erreurs
+    private Boolean isSupervisor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = true)

@@ -45,7 +45,6 @@ public class UserService implements IUserService {
                 throw new OurException("Email already exists: " + user.getEmail());
             }
 
-            // Si l'utilisateur est ADMIN, ne pas assigner de post
             if ("ADMIN".equals(user.getRole())) {
                 postId = null;
             }

@@ -102,16 +102,6 @@ public class Utils {
         return problemDTO;
     }
 
-    public static ProjectDTO mapProjectEntityToProjectDTOWithPosts(Project project) {
-        ProjectDTO projectDTO = mapProjectEntityToProjectDTO(project);
-        if (project.getPosts() != null) {
-            projectDTO.setPosts(
-                    project.getPosts().stream().map(Utils::mapPostEntityToPostDTO).collect(Collectors.toList())
-            );
-        }
-        return projectDTO;
-    }
-
     // 🔄 Mapping avancé : Ajouter la liste des problèmes dans PostDTO
     public static PostDTO mapPostEntityToPostDTOWithProblems(Post post) {
         PostDTO postDTO = mapPostEntityToPostDTO(post);
