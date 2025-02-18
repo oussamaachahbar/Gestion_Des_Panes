@@ -13,7 +13,7 @@ public interface IProjectService {
 
     Response<ProjectDTO> createProject(Project project);
 
-    Response<ProjectDTO> updateProject(Project project);
+    //Response<ProjectDTO> updateProject(Project project);
 
     Response<Void> deleteProject(long projectId);
 

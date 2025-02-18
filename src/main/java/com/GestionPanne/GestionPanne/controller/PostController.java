@@ -48,7 +48,6 @@ public class PostController {
     }
 
     @DeleteMapping("/deleteWorkstation/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteWorkstation(@PathVariable Long id) {
 
         Response<Void> response= workstationService.deletePost(id);

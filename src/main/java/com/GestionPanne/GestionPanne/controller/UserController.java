@@ -1,5 +1,6 @@
 package com.GestionPanne.GestionPanne.controller;
 
+import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.UserDTO;
 import com.GestionPanne.GestionPanne.entity.User;
@@ -61,4 +62,10 @@ public class UserController {
         Response<UserDTO> response = userService.getMyInfo(email);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+    @GetMapping("/getpost")
+    public ResponseEntity<Response<PostDTO>> getUserPost() {
+        Response<PostDTO> response = userService.getUserPost();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 }

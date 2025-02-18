@@ -2,6 +2,7 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 
 import com.GestionPanne.GestionPanne.dto.ProjectDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
+import com.GestionPanne.GestionPanne.entity.Filiere;
 import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.Project;
 import com.GestionPanne.GestionPanne.exception.OurException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProjectService implements IProjectService {
@@ -100,14 +102,17 @@ public class ProjectService implements IProjectService {
     public Response<ProjectDTO> updateProject(long projectId, Project project) {
         Response<ProjectDTO> response = new Response<>();
         try {
-            // Vérifier si le projet existe
             if (!projectRepository.existsById(projectId)) {
-                throw new OurException("Project not found with ID: " + projectId);
+                throw new OurException("Filiere not found with ID: " + projectId);
             }
+            Optional<Project> projectOpt = projectRepository.findById(projectId);
+            Project existingProject = projectOpt.get();
+            existingProject.setNameProject(project.getNameProject());
+            existingProject.setPosts(project.getPosts());
+            existingProject.setFamily(project.getFamily());
+            existingProject.setFiliere(project.getFiliere());
 
-            // Mettre à jour le projet
-            project.setId(projectId); // S'assurer que l'ID est correct
-            Project updatedProject = projectRepository.save(project);
+            Project updatedProject = projectRepository.save(existingProject);
             ProjectDTO projectDTO = Utils.mapProjectEntityToProjectDTO(updatedProject);
 
             // Construire la réponse
@@ -151,32 +156,7 @@ public class ProjectService implements IProjectService {
         return response;
     }
 
-    @Override
-    public Response<ProjectDTO> updateProject(Project project) {
-        Response<ProjectDTO> response = new Response<>();
-        try {
-            // Vérifier si le projet existe
-            if (!projectRepository.existsById(project.getId())) {
-                throw new OurException("Project not found with ID: " + project.getId());
-            }
 
-            // Mettre à jour le projet
-            Project updatedProject = projectRepository.save(project);
-            ProjectDTO projectDTO = Utils.mapProjectEntityToProjectDTO(updatedProject);
-
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
-            response.setMessage("Project updated successfully");
-            response.setData(projectDTO); // Utilisation de setData pour une réponse unique
-        } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
-            response.setMessage(e.getMessage());
-        } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
-            response.setMessage("Error updating project: " + e.getMessage());
-        }
-        return response;
-    }
 
     @Override
     public Response<Void> deleteProject(long id) {

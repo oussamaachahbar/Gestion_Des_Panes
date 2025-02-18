@@ -1,10 +1,9 @@
 package com.GestionPanne.GestionPanne.service.Interface;
 
 import java.util.List;
-import com.GestionPanne.GestionPanne.dto.ProblemDTO;
-import com.GestionPanne.GestionPanne.dto.Response;
-import com.GestionPanne.GestionPanne.dto.LoginRequest;
-import com.GestionPanne.GestionPanne.dto.UserDTO;
+
+import com.GestionPanne.GestionPanne.dto.*;
+import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.User;
 
 public interface IUserService {
@@ -17,4 +16,7 @@ public interface IUserService {
     Response<UserDTO> getUserByEmail(String email);
     Response<List<ProblemDTO>> getUserProblems(long userId);
     Response<UserDTO> getMyInfo(String email);
+    Response<PostDTO> getUserPost();
+
+
 }

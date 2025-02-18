@@ -1,9 +1,6 @@
 package com.GestionPanne.GestionPanne.service.Implementation;
 
-import com.GestionPanne.GestionPanne.dto.LoginRequest;
-import com.GestionPanne.GestionPanne.dto.ProblemDTO;
-import com.GestionPanne.GestionPanne.dto.Response;
-import com.GestionPanne.GestionPanne.dto.UserDTO;
+import com.GestionPanne.GestionPanne.dto.*;
 import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
@@ -15,6 +12,8 @@ import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -172,8 +171,6 @@ public class UserService implements IUserService {
             existingUser.setPhone(user.getPhone());
             existingUser.setName(user.getName());
             existingUser.setIsSupervisor(user.getIsSupervisor());
-
-            // Vérifier que le champ `post` n'est pas null avant de l'affecter
             if (user.getPost() != null) {
                 existingUser.setPost(user.getPost());
             }
@@ -289,4 +286,42 @@ public class UserService implements IUserService {
         }
         return response;
     }
+
+    @Override
+    public Response<PostDTO> getUserPost() {
+        Response<PostDTO> response = new Response<>();
+        try {
+            // 1. Récupérer l'utilisateur connecté
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName(); // L'email de l'utilisateur connecté
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new OurException("User not found"));
+
+            // 2. Vérifier si l'utilisateur a un post_id
+            if (user.getPost() == null) {
+                response.setStatusCode(404);
+                response.setMessage("No post found for this user.");
+                return response;
+            }
+
+            // 3. Convertir l'entité Post en PostDTO
+            Post post = user.getPost();
+            PostDTO postDTO = Utils.mapPostEntityToPostDTO(post);
+
+            // 4. Retourner le DTO
+            response.setStatusCode(200);
+            response.setMessage("Post retrieved successfully");
+            response.setData(postDTO);
+
+        } catch (OurException e) {
+            response.setStatusCode(404);
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Error retrieving post: " + e.getMessage());
+        }
+        return response;
+    }
+
 }

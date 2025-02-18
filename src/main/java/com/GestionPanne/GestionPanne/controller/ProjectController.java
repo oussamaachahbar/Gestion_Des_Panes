@@ -46,8 +46,8 @@ public class ProjectController {
 
     @PutMapping("/updateProject/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response<ProjectDTO>> updateProject( @RequestBody Project projectDTO) {
-        Response<ProjectDTO> response= projectService.updateProject(projectDTO);
+    public ResponseEntity<Response<ProjectDTO>> updateProject(@PathVariable Long id, @RequestBody Project projectDTO) {
+        Response<ProjectDTO> response= projectService.updateProject(id,projectDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 

@@ -50,9 +50,8 @@ public class ProblemService implements IProblemService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new OurException("Utilisateur non trouvé avec l'ID : " + userId));
 
-            // Vérification que l'utilisateur est un superviseur
-            if (Boolean.FALSE.equals(user.getIsSupervisor())) {
-                throw new OurException("Seuls les superviseurs et les admins peuvent signaler un problème.");
+            if (!user.getRole().equals("ADMIN") && !user.isSupervisor()) {
+                throw new OurException("Only supervisors can report a problem.");
             }
 
             Post post = postRepository.findById(Math.toIntExact(postId))
@@ -247,14 +246,15 @@ public class ProblemService implements IProblemService {
 
             existingProblem.setTitle(problemRequest.getTitle());
             existingProblem.setFailureDetails(problemRequest.getFailureDetails());
+            existingProblem.setUser(problemRequest.getUser());
+            existingProblem.setPost(problemRequest.getPost());
+            existingProblem.setPriority(problemRequest.getPriority());
+            existingProblem.setEtat(problemRequest.getEtat());
+            existingProblem.setFailureDate(new Date());
 
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(problemRequest.getFailureDate());
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            existingProblem.setFailureDate(calendar.getTime());
+
+
+
 
             Problem updatedProblem = problemRepository.save(existingProblem);
 

@@ -1,13 +1,18 @@
 package com.GestionPanne.GestionPanne.controller;
-
+import com.GestionPanne.GestionPanne.repo.UserRepository;
 import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.entity.Problem;
+import com.GestionPanne.GestionPanne.entity.User;
+import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.service.Implementation.ProblemService;
+import com.GestionPanne.GestionPanne.service.Implementation.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,15 +23,30 @@ public class ProblemController {
 
     @Autowired
     private ProblemService problemService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
-    @PostMapping("/add/{userId}/{postId}")
+    @PostMapping("/add/{postId}")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
-    public ResponseEntity<Response<ProblemDTO>> reportProblem(@PathVariable Long userId,
-                                                              @PathVariable Long postId,
+    public ResponseEntity<Response<ProblemDTO>> reportProblem(@PathVariable Long postId,
                                                               @RequestBody Problem problemDTO) {
-        Response<ProblemDTO> response = problemService.reportProblem(userId, postId, problemDTO);
+        // Récupérer l'utilisateur connecté
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // Trouver l'utilisateur dans la base de données
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new OurException("User not found"));
+
+
+        // Appeler le service pour signaler le problème
+        Response<ProblemDTO> response = problemService.reportProblem(user.getId(), postId, problemDTO);
+
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('ADMIN')")

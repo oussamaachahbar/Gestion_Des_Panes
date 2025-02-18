@@ -83,6 +83,15 @@ public class Utils {
 
         return postDTO;
     }
+    public static PostDTO mapPostEntityToPostDTOsansproblemANDproject(Post post) {
+        PostDTO postDTO = new PostDTO();
+        postDTO.setId(post.getId());
+        postDTO.setName(post.getName());
+        postDTO.setDescription(post.getDescription());
+        postDTO.setPosition(post.getPosition());
+
+        return postDTO;
+    }
 
     // 🟢 Mapping de l'entité Problem vers ProblemDTO
     public static ProblemDTO mapProblemEntityToProblemDTO(Problem problem) {

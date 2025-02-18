@@ -8,6 +8,7 @@ import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.PostRepository;
 import com.GestionPanne.GestionPanne.repo.ProjectRepository;
+import com.GestionPanne.GestionPanne.repo.UserRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IPostService;
 import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,10 @@ public class PostService implements IPostService {
     private PostRepository postRepository;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
     @Override
     public Response<PostDTO> createPost(Long project_id, Post postRequest) {
@@ -170,8 +175,13 @@ public class PostService implements IPostService {
             // Vérifier si le post existe
             Post post = postRepository.findById(Math.toIntExact(postId))
                     .orElseThrow(() -> new OurException("Post not found with ID: " + postId));
+            List<User> users = userRepository.findByPost(post);
+            for (User user : users) {
+                user.setPost(null); // Supprimer l'association avec le projet
+                userRepository.save(user); // Mettre à jour la base de données
+            }
 
-            // Supprimer le post
+
             postRepository.delete(post);
 
             // Construire la réponse
