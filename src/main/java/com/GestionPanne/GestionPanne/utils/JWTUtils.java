@@ -2,6 +2,7 @@ package com.GestionPanne.GestionPanne.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -14,12 +15,13 @@ import java.util.function.Function;
 @Service
 public class JWTUtils {
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 24 * 7; // 7 jours
+    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
     private final SecretKey key;
 
     public JWTUtils() {
+        // Ideally, use a more secure method for fetching your secret key
         String secretString = "843567893696976453275974432697R634976R738467TR678T34865R6834R8763T478378637664538745673865783678548735687R3";
-        byte[] keyBytes = Base64.getDecoder().decode(secretString.getBytes());
+        byte[] keyBytes = Base64.getDecoder().decode(secretString);
         this.key = Keys.hmacShaKeyFor(keyBytes); // Utilisation correcte de la clé secrète avec HMAC-SHA
     }
 
@@ -52,5 +54,15 @@ public class JWTUtils {
 
     private boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
+    // Handle any exceptions when parsing the token
+    public boolean isTokenValidWithExceptionHandling(String token, UserDetails userDetails) {
+        try {
+            return isValidToken(token, userDetails);
+        } catch (JwtException | IllegalArgumentException e) {
+            // Handle the exception (e.g., logging or throwing a custom exception)
+            return false;
+        }
     }
 }

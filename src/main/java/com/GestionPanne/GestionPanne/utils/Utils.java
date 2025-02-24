@@ -23,18 +23,29 @@ public class Utils {
         return stringBuilder.toString();
     }
 
-    // 🟢 Mapping de l'entité User vers UserDTO
     public static UserDTO mapUserEntityToUserDTO(User user) {
         UserDTO userDTO = new UserDTO();
+
+        // Map de base
         userDTO.setId(user.getId());
         userDTO.setName(user.getName());
         userDTO.setEmail(user.getEmail());
         userDTO.setPhone(user.getPhone());
         userDTO.setRole(user.getRole());
         userDTO.setSupervisor(user.isSupervisor());
+        if(user.getPost() != null) {
+            userDTO.setPostName(user.getPost().getName());
 
-        // Vérification si le rôle est "ADMIN" en comparant directement avec une chaîne
-        if (!"ADMIN".equals(user.getRole())) {
+        }
+        else{
+            userDTO.setPostName("Non Post Assignée");
+        }
+
+        if ("ADMIN".equals(user.getRole())) {
+            // Si le rôle est "ADMIN", on ne définit pas de postId
+            userDTO.setPostId(null);
+        } else {
+            // Si ce n'est pas "ADMIN", on attribue l'id du post si présent
             userDTO.setPostId(user.getPost() != null ? user.getPost().getId() : null);
         }
 
@@ -42,13 +53,15 @@ public class Utils {
     }
 
 
+
     // 🟢 Mapping de l'entité Project vers ProjectDTO
     public static ProjectDTO mapProjectEntityToProjectDTO(Project project) {
         ProjectDTO projectDTO = new ProjectDTO();
         projectDTO.setId(project.getId());
         projectDTO.setNameProject(project.getNameProject());
-        projectDTO.setFamilyId(project.getFamily().getId());
-        projectDTO.setFiliereId(project.getFiliere().getId());
+        projectDTO.setFamilyName(project.getFamily().getName());
+        projectDTO.setFiliereName(project.getFiliere().getName());
+
         return projectDTO;
     }
 
@@ -83,15 +96,6 @@ public class Utils {
 
         return postDTO;
     }
-    public static PostDTO mapPostEntityToPostDTOsansproblemANDproject(Post post) {
-        PostDTO postDTO = new PostDTO();
-        postDTO.setId(post.getId());
-        postDTO.setName(post.getName());
-        postDTO.setDescription(post.getDescription());
-        postDTO.setPosition(post.getPosition());
-
-        return postDTO;
-    }
 
     // 🟢 Mapping de l'entité Problem vers ProblemDTO
     public static ProblemDTO mapProblemEntityToProblemDTO(Problem problem) {
@@ -99,6 +103,8 @@ public class Utils {
         problemDTO.setId(problem.getId());
         problemDTO.setUserId(problem.getUser().getId());
         problemDTO.setPostId(problem.getPost().getId());
+        problemDTO.setPostname(problem.getPost().getName());
+        problemDTO.setUsername(problem.getUser().getName());
         problemDTO.setFailureDate(problem.getFailureDate());
         problemDTO.setSolutionDate(problem.getSolutionDate());
         problemDTO.setFailureDetails(problem.getFailureDetails());

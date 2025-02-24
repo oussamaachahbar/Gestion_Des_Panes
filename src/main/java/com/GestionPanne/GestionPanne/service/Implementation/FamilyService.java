@@ -3,7 +3,6 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 import com.GestionPanne.GestionPanne.dto.FamilyDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Family;
-import com.GestionPanne.GestionPanne.entity.Filiere;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.FamilyRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IFamilyService;
@@ -45,8 +44,8 @@ public class FamilyService implements IFamilyService {
     }
 
     @Override
-    public Response<FamilyDTO> getAllFamilies() {
-        Response<FamilyDTO> response = new Response<>();
+    public Response<List<FamilyDTO>> getAllFamilies() {
+        Response<List<FamilyDTO>> response = new Response<>();
         try {
             // Récupérer toutes les familles
             List<Family> families = familyRepository.findAll();
@@ -55,7 +54,7 @@ public class FamilyService implements IFamilyService {
             // Construire la réponse
             response.setStatusCode(200); // 200 OK
             response.setMessage("Families retrieved successfully");
-            response.setDataList(familyDTOList); // Utilisation de setDataList pour une liste de données
+            response.setData(familyDTOList); // Utilisation de setDataList pour une liste de données
         } catch (Exception e) {
             response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Error retrieving families: " + e.getMessage());

@@ -12,6 +12,8 @@ import com.GestionPanne.GestionPanne.repo.UserRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IPostService;
 import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -125,6 +127,47 @@ public class PostService implements IPostService {
         }
         return response;
     }
+    @Override
+    public Response<PostDTO> getPostByUserId() {
+        Response<PostDTO> response = new Response<>();
+        try {
+            // Récupérer l'utilisateur authentifié
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String currentUserName = authentication.getName(); // Nom d'utilisateur connecté
+
+            // Récupérer l'utilisateur par son ID (userId)
+            User user =userRepository.findByEmail(currentUserName)
+                    .orElseThrow(() -> new OurException("User not found with EMAIL: " + currentUserName));
+
+            // Vérifier si l'utilisateur authentifié est le même que l'utilisateur passé en paramètre
+            if (!user.getUsername().equals(currentUserName)) {
+                throw new OurException("You do not have permission to view this user's post.");
+            }
+
+            // Récupérer le poste associé à cet utilisateur
+            Post post = user.getPost();  // L'utilisateur a un seul poste associé
+
+            if (post == null) {
+                throw new OurException("This user does not have an associated post.");
+            }
+
+            // Mapper l'entité Post vers PostDTO (y compris les problèmes ou autres informations associées)
+            PostDTO postDTO = Utils.mapPostEntityToPostDTOWithProblems(post);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("Post retrieved successfully");
+            response.setData(postDTO); // Utilisation de setData pour la réponse unique
+        } catch (OurException e) {
+            response.setStatusCode(404); // 404 Not Found
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setStatusCode(500); // 500 Internal Server Error
+            response.setMessage("Error retrieving post: " + e.getMessage());
+        }
+        return response;
+    }
+
 
     @Override
     public Response<PostDTO> updatePost(Long postId, Post postRequest) {
@@ -144,11 +187,12 @@ public class PostService implements IPostService {
             if (postRequest.getProject() != null) {
                 existingPost.setProject(postRequest.getProject());
             }
-            if (postRequest.getUsers() != null) {
-                existingPost.setUsers(postRequest.getUsers());
+            Post post=postRepository.findById(postId);
+            if (postRequest.getUsers() == null) {
+                existingPost.setUsers(post.getUsers());
             }
-            if (postRequest.getProblems() != null) {
-                existingPost.setProblems(postRequest.getProblems());
+            if (postRequest.getProblems() == null) {
+                existingPost.setProblems(post.getProblems());
             }
 
             Post updatedPost = postRepository.save(existingPost);

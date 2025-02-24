@@ -78,6 +78,24 @@ public class UserService implements IUserService {
         return response;
     }
 
+    @Override
+    public Response<List<UserDTO>> getAllUserse() {
+        Response<List<UserDTO>> response = new Response<>();
+        try {
+            // Récupérer tous les utilisateurs
+            List<User> users = userRepository.findByUserRole();
+            List<UserDTO> userDTOList = Utils.mapUserListEntityToUserListDTO(users);
+
+            // Construire la réponse
+            response.setStatusCode(200); // 200 OK
+            response.setMessage("Users retrieved successfully");
+            response.setData(userDTOList); // Utilisation de setData pour une liste de données
+        } catch (Exception e) {
+            response.setStatusCode(500); // 500 Internal Server Error
+            response.setMessage("Error retrieving users: " + e.getMessage());
+        }
+        return response;
+    }
 
 
     @Override
@@ -159,34 +177,52 @@ public class UserService implements IUserService {
     public Response<UserDTO> updateUser(Long userId, User user) {
         Response<UserDTO> response = new Response<>();
         try {
+            // Vérifier si l'utilisateur existe
             Optional<User> userOpt = userRepository.findById(userId);
-            if (!userOpt.isPresent()) {
+            if (userOpt.isEmpty()) {
                 throw new OurException("User not found with ID: " + userId);
             }
 
             User existingUser = userOpt.get();
+            boolean wasSupervisor = existingUser.getIsSupervisor() != null && existingUser.getIsSupervisor();
+            boolean wantsToBeSupervisor = user.getIsSupervisor() != null && user.getIsSupervisor();
 
+            // Vérification avant mise à jour du statut de superviseur
+            if (!wasSupervisor && wantsToBeSupervisor) {
+                if (existingUser.getPost() != null) {
+                    Long postId = existingUser.getPost().getId();
+
+                    // Vérifier si un superviseur existe déjà pour ce poste
+                    boolean postHasSupervisor = userRepository.existsByPostIdAndIsSupervisorTrue(postId);
+                    if (postHasSupervisor) {
+                        throw new OurException("This post already has a supervisor. You cannot assign another one.");
+                    }
+                }
+            }
+
+            // Mise à jour des informations de l'utilisateur
             existingUser.setEmail(user.getEmail());
             existingUser.setRole(user.getRole());
             existingUser.setPhone(user.getPhone());
             existingUser.setName(user.getName());
-            existingUser.setIsSupervisor(user.getIsSupervisor());
+            existingUser.setIsSupervisor(wantsToBeSupervisor);
+
             if (user.getPost() != null) {
                 existingUser.setPost(user.getPost());
             }
 
-            // Vérifier si un nouveau mot de passe a été fourni
             if (user.getPassword() != null && !user.getPassword().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
             }
 
+            // Sauvegarde des modifications
             User updatedUser = userRepository.save(existingUser);
             response.setStatusCode(200);
             response.setMessage("User updated successfully");
             response.setData(Utils.mapUserEntityToUserDTO(updatedUser));
 
         } catch (OurException e) {
-            response.setStatusCode(404);
+            response.setStatusCode(400);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
             response.setStatusCode(500);
@@ -194,7 +230,6 @@ public class UserService implements IUserService {
         }
         return response;
     }
-
 
     @Override
     public Response<Void> deleteUser(long id) {

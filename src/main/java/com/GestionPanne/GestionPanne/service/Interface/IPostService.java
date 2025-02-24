@@ -16,4 +16,6 @@ public interface IPostService {
     Response<Void> deletePost(Long postId);
 
 
+    Response<PostDTO> getPostByUserId();
+
 }

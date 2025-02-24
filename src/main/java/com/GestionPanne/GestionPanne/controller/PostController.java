@@ -46,6 +46,13 @@ public class PostController {
         Response<PostDTO> response= workstationService.updatePost(id, workstationDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+    @GetMapping("/getWorkstationByUserId")
+    public ResponseEntity<Response<PostDTO>> getWorkstationByUserId() {
+        Response<PostDTO> response= workstationService.getPostByUserId();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+
 
     @DeleteMapping("/deleteWorkstation/{id}")
     public ResponseEntity<Response<Void>> deleteWorkstation(@PathVariable Long id) {

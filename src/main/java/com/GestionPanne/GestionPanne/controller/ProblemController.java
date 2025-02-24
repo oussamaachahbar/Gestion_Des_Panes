@@ -75,14 +75,12 @@ public class ProblemController {
     }
 
     @PutMapping("/validate/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProblemDTO>> validateProblem(@PathVariable Long id) {
         Response<ProblemDTO> response = problemService.validateProblem(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping("/assign/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProblemDTO>> assignProblemToTeam(@PathVariable Long id) {
         Response<ProblemDTO> response = problemService.assignProblemToTeam(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);

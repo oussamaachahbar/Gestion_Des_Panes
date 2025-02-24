@@ -1,12 +1,14 @@
 package com.GestionPanne.GestionPanne.service.Interface;
 import com.GestionPanne.GestionPanne.dto.FamilyDTO;
-import com.GestionPanne.GestionPanne.service.*;
 import com.GestionPanne.GestionPanne.entity.Family;
 import com.GestionPanne.GestionPanne.dto.Response;
+
+import java.util.List;
+
 public interface IFamilyService {
     Response<FamilyDTO> createFamily(Family familyRequest);
 
-    Response<FamilyDTO> getAllFamilies();
+    Response<List<FamilyDTO>> getAllFamilies();
 
     Response<FamilyDTO> getFamilyById(Long familyId);
 

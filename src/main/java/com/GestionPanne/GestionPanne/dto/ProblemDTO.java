@@ -8,8 +8,10 @@ import java.util.List;
 @Data
 public class ProblemDTO {
     private Long id;
-    private Long userId; // ID de l'utilisateur
-    private Long postId; // ID du post
+    private Long userId;
+    private Long postId;
+    private String username;
+    private String postname;// ID de l'utilisateur
     private Date failureDate;
     private Date solutionDate;
     private String failureDetails;

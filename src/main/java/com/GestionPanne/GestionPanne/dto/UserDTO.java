@@ -18,7 +18,8 @@ public class UserDTO {
     private String phone;
     private String role;
     private boolean supervisor; // ✅ Correction du nom (évite le préfixe "is" pour un attribut)
-    private long postId;
+    private Long postId;
+    private String postName;
     private PostDTO postDTO;// ID du poste de l'utilisateur (ou PostDTO si nécessaire)
     private List<Long> problemIds; // Liste des IDs des problèmes
     private List<ProblemDTO> problems; // Liste complète des problèmes

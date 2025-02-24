@@ -365,7 +365,6 @@ public class ProblemService implements IProblemService {
 
             problem.setEtat(Etat.EN_PROGRESS);
             Problem updatedProblem = problemRepository.save(problem);
-
             response.setStatusCode(200);
             response.setMessage("Problème assigné avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));

@@ -9,6 +9,8 @@ import com.GestionPanne.GestionPanne.entity.User;
 public interface IUserService {
     Response<String> login(LoginRequest loginRequest);
     Response<UserDTO> registre(Long postId, User user);
+    Response<List<UserDTO>> getAllUserse();
+
     Response<List<UserDTO>> getAllUsers();
     Response<UserDTO> getUserById(long id);
     Response<UserDTO> updateUser(Long userId, User user);

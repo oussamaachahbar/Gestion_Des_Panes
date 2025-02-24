@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/Family")
 public class FamilyController {
@@ -28,8 +30,8 @@ public class FamilyController {
 
     @GetMapping("/all")
 
-    public ResponseEntity<Response<FamilyDTO>> getAllFamilies() {
-        Response<FamilyDTO> response= familyService.getAllFamilies();
+    public ResponseEntity<Response<List<FamilyDTO>>> getAllFamilies() {
+        Response<List<FamilyDTO>> response= familyService.getAllFamilies();
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
