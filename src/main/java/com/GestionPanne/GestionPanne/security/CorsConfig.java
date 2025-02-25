@@ -14,10 +14,10 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("*") // Autorise toutes les origines (tu peux limiter à ton frontend)
+                        .allowedOrigins("https://c66b-41-92-7-20.ngrok-free.app", "https://621b-41-92-7-20.ngrok-free.app") // Ajoute tes URLs Ngrok
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*") // Autorise tous les headers
-                        .allowCredentials(false); // Mettre true si tu utilises des cookies ou sessions
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }

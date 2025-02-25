@@ -13,6 +13,7 @@ public class Response<T> {
     private String message;
 
     private String token;
+    private boolean supervisor;
     private String role;
     private String expirationTime;
     private T data; // Donnée unique (UserDTO, PostDTO, etc.)

@@ -35,15 +35,10 @@ public class PostController {
     }
 
     @GetMapping("/getWorkstationById/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
+
     public ResponseEntity<Response<PostDTO>> getWorkstationById(@PathVariable Long id) {
         Response<PostDTO> response= workstationService.getPostById(id);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
-    }
-
-    @PutMapping("/updateWorkstation/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response<PostDTO>> updateWorkstation(@PathVariable Long id ,@RequestBody Post workstationDTO) {
-        Response<PostDTO> response= workstationService.updatePost(id, workstationDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("/getWorkstationByUserId")
@@ -51,6 +46,13 @@ public class PostController {
         Response<PostDTO> response= workstationService.getPostByUserId();
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+    @PutMapping("/updateWorkstation/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response<PostDTO>> updateWorkstation(@PathVariable Long id ,@RequestBody Post workstationDTO) {
+        Response<PostDTO> response= workstationService.updatePost(id, workstationDTO);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 
 
 

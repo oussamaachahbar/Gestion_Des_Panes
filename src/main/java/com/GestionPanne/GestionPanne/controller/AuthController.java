@@ -18,7 +18,7 @@ public class AuthController {
 
     @PostMapping("/add/{postId}")
     public ResponseEntity<Response<UserDTO>> createUser(@PathVariable Long postId, @RequestBody User user) {
-        Response<UserDTO> response = userService.registre(postId, user);
+        Response<UserDTO> response = userService.registreUser(postId, user);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 

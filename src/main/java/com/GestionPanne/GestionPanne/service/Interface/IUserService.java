@@ -10,6 +10,7 @@ public interface IUserService {
     Response<String> login(LoginRequest loginRequest);
     Response<UserDTO> registre(Long postId, User user);
     Response<List<UserDTO>> getAllUserse();
+    Response<UserDTO> registreUser(Long postId, User user);
 
     Response<List<UserDTO>> getAllUsers();
     Response<UserDTO> getUserById(long id);

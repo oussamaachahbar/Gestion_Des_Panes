@@ -11,7 +11,8 @@ public class ProblemDTO {
     private Long userId;
     private Long postId;
     private String username;
-    private String postname;// ID de l'utilisateur
+    private String postname;
+    private String title;// ID de l'utilisateur
     private Date failureDate;
     private Date solutionDate;
     private String failureDetails;

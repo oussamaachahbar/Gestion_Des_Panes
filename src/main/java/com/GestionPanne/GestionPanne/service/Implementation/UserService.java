@@ -77,6 +77,47 @@ public class UserService implements IUserService {
         }
         return response;
     }
+    @Override
+    public Response<UserDTO> registreUser(Long postId, User user) {
+        Response<UserDTO> response = new Response<>();
+        try {
+            if (userRepository.existsByEmail(user.getEmail())) {
+                throw new OurException("Email already exists: " + user.getEmail());
+            }
+
+            if ("ADMIN".equals(user.getRole())) {
+                postId = null;
+            }
+
+            Post post = null;
+            if (postId != null) {
+                post = postRepository.findById(postId);
+
+                // Vérifier si le post a déjà un superviseur
+                boolean hasSupervisor = post.getUsers().stream().anyMatch(User::getIsSupervisor);
+                if (user.getIsSupervisor() && hasSupervisor) {
+                    throw new OurException("This post already has a supervisor. Only one supervisor is allowed per post.");
+                }
+            }
+
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setPost(post); // Assigne null si l'utilisateur est ADMIN
+            user.setIsSupervisor(false);
+            User savedUser = userRepository.save(user);
+            UserDTO userDTO = Utils.mapUserEntityToUserDTO(savedUser);
+
+            response.setStatusCode(201);
+            response.setMessage("User registered successfully");
+            response.setData(userDTO);
+        } catch (OurException e) {
+            response.setStatusCode(400);
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Error occurred during user registration: " + e.getMessage());
+        }
+        return response;
+    }
 
     @Override
     public Response<List<UserDTO>> getAllUserse() {
@@ -121,6 +162,7 @@ public class UserService implements IUserService {
             response.setRole(user.getRole());
             response.setExpirationTime("7 Days");
             response.setToken(token);
+            response.setSupervisor(user.isSupervisor());
         } catch (OurException e) {
             response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());

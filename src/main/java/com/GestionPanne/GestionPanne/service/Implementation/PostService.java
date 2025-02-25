@@ -127,32 +127,33 @@ public class PostService implements IPostService {
         }
         return response;
     }
+
     @Override
     public Response<PostDTO> getPostByUserId() {
         Response<PostDTO> response = new Response<>();
         try {
-            // Récupérer l'utilisateur authentifié
+            // Récupérer l'authentification actuelle
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String currentUserName = authentication.getName(); // Nom d'utilisateur connecté
+            String currentUserName = authentication.getName();
 
-            // Récupérer l'utilisateur par son ID (userId)
-            User user =userRepository.findByEmail(currentUserName)
+            // Trouver l'utilisateur par email
+            User user = userRepository.findByEmail(currentUserName)
                     .orElseThrow(() -> new OurException("User not found with EMAIL: " + currentUserName));
 
-            // Vérifier si l'utilisateur authentifié est le même que l'utilisateur passé en paramètre
             if (!user.getUsername().equals(currentUserName)) {
                 throw new OurException("You do not have permission to view this user's post.");
             }
-
-            // Récupérer le poste associé à cet utilisateur
             Post post = user.getPost();  // L'utilisateur a un seul poste associé
 
             if (post == null) {
                 throw new OurException("This user does not have an associated post.");
             }
 
-            // Mapper l'entité Post vers PostDTO (y compris les problèmes ou autres informations associées)
+            // Mapper l'entité Post vers PostDTO
             PostDTO postDTO = Utils.mapPostEntityToPostDTOWithProblems(post);
+            if (postDTO == null) {
+                throw new OurException("Error mapping post to DTO.");
+            }
 
             // Construire la réponse
             response.setStatusCode(200); // 200 OK

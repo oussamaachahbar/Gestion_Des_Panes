@@ -21,6 +21,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -37,6 +38,8 @@ public class ProblemService implements IProblemService {
 
     @Autowired
     private JavaMailSender mailSender;
+    @Autowired
+    private UserService userService;
 
 
     @Override
@@ -77,6 +80,7 @@ public class ProblemService implements IProblemService {
             if (problemRequest.getFailureDate() == null) {
                 problemRequest.setFailureDate(new Date()); // Date d'aujourd'hui
             }
+
 
             // Sauvegarde du problème
             Problem savedProblem = problemRepository.save(problemRequest);
@@ -319,9 +323,11 @@ public class ProblemService implements IProblemService {
         try {
             // Récupérer les problèmes par utilisateur
             List<Problem> problems = problemRepository.findByUserId(userId);
-
+            User user=userRepository.findById(userId)
+                    .orElseThrow(()-> new OurException("User avec l'ID introuvable."));
             // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
+            response.setSupervisor(user.getIsSupervisor());// 200 OK
             response.setMessage("Problèmes pour l'utilisateur récupérés avec succès.");
             response.setData(Utils.mapProblemListEntityToProblemListDTO(problems));
         } catch (Exception e) {

@@ -29,7 +29,6 @@ public class ProblemController {
     private UserRepository userRepository;
 
     @PostMapping("/add/{postId}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
     public ResponseEntity<Response<ProblemDTO>> reportProblem(@PathVariable Long postId,
                                                               @RequestBody Problem problemDTO) {
         // Récupérer l'utilisateur connecté
@@ -58,6 +57,17 @@ public class ProblemController {
     @GetMapping("/{id}")
     public ResponseEntity<Response<ProblemDTO>> getProblemById(@PathVariable Long id) {
         Response<ProblemDTO> response = problemService.getProblemById(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+    @GetMapping("/getProblemByUserId")
+    public ResponseEntity<Response<List<ProblemDTO>>> getProblemByUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // Trouver l'utilisateur dans la base de données
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new OurException("User not found"));
+        Response<List<ProblemDTO>> response = problemService.getProblemsByUser(user.getId());
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 

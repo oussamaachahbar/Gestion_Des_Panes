@@ -91,6 +91,7 @@ public class Utils {
         postDTO.setDescription(post.getDescription());
         postDTO.setPosition(post.getPosition());
         postDTO.setProjectId(post.getProject().getId());
+        postDTO.setProjectName(post.getProject().getNameProject());
         postDTO.setUsers(post.getUsers().stream().map(Utils::mapUserEntityToUserDTO).collect(Collectors.toList()));
         postDTO.setProblems(post.getProblems().stream().map(Utils::mapProblemEntityToProblemDTO).collect(Collectors.toList()));
 
@@ -103,6 +104,7 @@ public class Utils {
         problemDTO.setId(problem.getId());
         problemDTO.setUserId(problem.getUser().getId());
         problemDTO.setPostId(problem.getPost().getId());
+        problemDTO.setTitle(problem.getTitle());
         problemDTO.setPostname(problem.getPost().getName());
         problemDTO.setUsername(problem.getUser().getName());
         problemDTO.setFailureDate(problem.getFailureDate());
