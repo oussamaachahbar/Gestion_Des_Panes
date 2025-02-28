@@ -55,7 +55,6 @@ public class PostService implements IPostService {
 
 
 
-            // Associer le projet au post
             postRequest.setProject(project);
             if (postRequest.getUsers() == null) {
                 postRequest.setUsers(new ArrayList<>());

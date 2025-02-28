@@ -15,6 +15,10 @@ public interface IUserService {
     Response<List<UserDTO>> getAllUsers();
     Response<UserDTO> getUserById(long id);
     Response<UserDTO> updateUser(Long userId, User user);
+    Response<UserDTO> updateUsere(Long userId, User user);
+
+    Response<UserDTO> updateUsere(Long postId,Long userId, User user);
+
     Response<Void> deleteUser(long id);
     Response<UserDTO> getUserByEmail(String email);
     Response<List<ProblemDTO>> getUserProblems(long userId);

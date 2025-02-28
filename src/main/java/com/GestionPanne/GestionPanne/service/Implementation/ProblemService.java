@@ -9,6 +9,9 @@ import com.GestionPanne.GestionPanne.repo.ProblemRepository;
 import com.GestionPanne.GestionPanne.repo.UserRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IProblemService;
 import com.GestionPanne.GestionPanne.utils.Utils;
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Call;
+import com.twilio.rest.lookups.v2.PhoneNumber;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,6 +21,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import jakarta.mail.internet.MimeMessage;
 
+import java.net.URI;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -81,12 +85,14 @@ public class ProblemService implements IProblemService {
                 problemRequest.setFailureDate(new Date()); // Date d'aujourd'hui
             }
 
-
             // Sauvegarde du problème
             Problem savedProblem = problemRepository.save(problemRequest);
 
             // Envoi de l'email de signalement
             sendProblemReportEmail(savedProblem);
+
+            // Envoi d'un appel téléphonique avec les informations du problème
+
 
             response.setStatusCode(201);
             response.setMessage("Problème signalé avec succès.");
@@ -104,7 +110,7 @@ public class ProblemService implements IProblemService {
         return response;
     }
 
-
+    // Méthode pour envoyer un appel téléphonique avec les informations du problème
 
 
 

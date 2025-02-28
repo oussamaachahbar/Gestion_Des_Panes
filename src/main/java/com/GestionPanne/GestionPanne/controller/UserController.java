@@ -52,6 +52,19 @@ public class UserController {
         Response<UserDTO> response = userService.updateUser(id, user);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+    @PutMapping("/updateUserProfil/{id}")
+
+    public ResponseEntity<Response<UserDTO>> updateUserProfil(@PathVariable Long id, @RequestBody User user) {
+        Response<UserDTO> response = userService.updateUser(id, user);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+    @PutMapping("/updateUserNew/{PostId}/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+
+    public ResponseEntity<Response<UserDTO>> updateUser(@PathVariable Long PostId,@PathVariable Long id, @RequestBody User user) {
+        Response<UserDTO> response = userService.updateUsere(PostId,id, user);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 
     @DeleteMapping("/deleteUser/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")

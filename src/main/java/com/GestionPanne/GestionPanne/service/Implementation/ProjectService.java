@@ -2,10 +2,13 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 
 import com.GestionPanne.GestionPanne.dto.ProjectDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
+import com.GestionPanne.GestionPanne.entity.Family;
 import com.GestionPanne.GestionPanne.entity.Filiere;
 import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.Project;
 import com.GestionPanne.GestionPanne.exception.OurException;
+import com.GestionPanne.GestionPanne.repo.FamilyRepository;
+import com.GestionPanne.GestionPanne.repo.FiliereRepository;
 import com.GestionPanne.GestionPanne.repo.PostRepository;
 import com.GestionPanne.GestionPanne.repo.ProjectRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IProjectService;
@@ -25,6 +28,10 @@ public class ProjectService implements IProjectService {
     private ProjectRepository projectRepository;
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private FamilyRepository familyRepository;
+    @Autowired
+    private FiliereRepository filiereRepository;
 
     @Override
     public Response<ProjectDTO> createProject(long familyId, long filiereId, Project project) {
@@ -38,7 +45,14 @@ public class ProjectService implements IProjectService {
             if (project.getPosts() == null) {
                 project.setPosts(new ArrayList<>());
             }
-
+            Family famille=familyRepository.findById(familyId).get();
+            Filiere filiere=filiereRepository.findById(filiereId).get();
+            if(famille!=null){
+                project.setFamily(famille);
+            }
+            if(filiere!=null){
+                project.setFiliere(filiere);
+            }
             Project savedProject = projectRepository.save(project);
             ProjectDTO projectDTO = Utils.mapProjectEntityToProjectDTO(savedProject);
 

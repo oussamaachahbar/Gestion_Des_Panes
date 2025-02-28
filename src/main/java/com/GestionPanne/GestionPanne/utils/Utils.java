@@ -32,7 +32,7 @@ public class Utils {
         userDTO.setEmail(user.getEmail());
         userDTO.setPhone(user.getPhone());
         userDTO.setRole(user.getRole());
-        userDTO.setSupervisor(user.isSupervisor());
+        userDTO.setSupervisor(user.getIsSupervisor());
         if(user.getPost() != null) {
             userDTO.setPostName(user.getPost().getName());
 

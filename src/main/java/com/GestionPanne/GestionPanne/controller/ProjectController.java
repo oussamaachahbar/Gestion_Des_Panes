@@ -20,11 +20,11 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
-    @PostMapping("/add")
+    @PostMapping("/add/{familleId}/{filiereId}")
     @PreAuthorize("hasAuthority('ADMIN')")
 
-    public ResponseEntity<Response<ProjectDTO>> createProject(@RequestBody Project projectDTO) {
-        Response<ProjectDTO> response= projectService.createProject(projectDTO);
+    public ResponseEntity<Response<ProjectDTO>> createProject(@PathVariable Long familleId,@PathVariable Long filiereId,@RequestBody Project projectDTO) {
+        Response<ProjectDTO> response= projectService.createProject(familleId,filiereId,projectDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
