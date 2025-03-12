@@ -3,8 +3,10 @@ package com.GestionPanne.GestionPanne.dto;
 import com.GestionPanne.GestionPanne.entity.Etat;
 import com.GestionPanne.GestionPanne.entity.Priority;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.List;
+
 @Data
 public class ProblemDTO {
     private Long id;
@@ -12,11 +14,10 @@ public class ProblemDTO {
     private Long postId;
     private String username;
     private String postname;
-    private String title;// ID de l'utilisateur
-    private Date failureDate;
-    private Date solutionDate;
+    private String title;
+    private LocalDateTime failureDate;
+    private LocalDateTime solutionDate;
     private String failureDetails;
     private String priority; // Enum Priority converti en String
-    private String etat; // Enum Etat converti en String
-
+    private String etat;
 }

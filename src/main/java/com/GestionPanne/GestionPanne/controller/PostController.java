@@ -3,6 +3,7 @@ package com.GestionPanne.GestionPanne.controller;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.*;
 import com.GestionPanne.GestionPanne.entity.Post;
+import com.GestionPanne.GestionPanne.service.Implementation.LogService;
 import com.GestionPanne.GestionPanne.service.Implementation.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +19,21 @@ public class PostController {
     @Autowired
     private PostService workstationService;
 
+    @Autowired
+    private LogService logService;  // Ajout du LogService
+
     @PostMapping("/add/{project}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response<PostDTO>> createWorkstation(@PathVariable Long project,@RequestBody Post workstationDTO) {
-        Response<PostDTO> response= workstationService.createPost(project,workstationDTO);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+    public ResponseEntity<Response<PostDTO>> createWorkstation(@PathVariable Long project, @RequestBody Post workstationDTO) {
+        Response<PostDTO> response = workstationService.createPost(project, workstationDTO);
 
+        if (response.getStatusCode() == 201) {
+            logService.saveLog("Poste de travail créé pour le projet ID : " + project);
+        } else {
+            logService.saveLog("Échec de la création du poste de travail pour le projet ID : " + project);
+        }
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @GetMapping("/all")

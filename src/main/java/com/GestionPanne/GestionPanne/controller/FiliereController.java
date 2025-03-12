@@ -2,11 +2,17 @@ package com.GestionPanne.GestionPanne.controller;
 import com.GestionPanne.GestionPanne.dto.FamilyDTO;
 import com.GestionPanne.GestionPanne.dto.FiliereDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
+import com.GestionPanne.GestionPanne.entity.Family;
 import com.GestionPanne.GestionPanne.entity.Filiere;
+import com.GestionPanne.GestionPanne.exception.OurException;
+import com.GestionPanne.GestionPanne.repo.FiliereRepository;
+import com.GestionPanne.GestionPanne.service.Implementation.LogService;
 import com.GestionPanne.GestionPanne.service.Interface.IFiliereService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,12 +24,30 @@ public class FiliereController {
     @Autowired
     private IFiliereService filiereService;
 
+    @Autowired
+    private LogService logService;  // Ajout du service de logs
+    @Autowired
+    private FiliereRepository filiereRepository;
+
     @PostMapping("/add")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<FiliereDTO>> createFiliere(@RequestBody Filiere filiereDTO) {
-        Response<FiliereDTO> response=  filiereService.createFiliere(filiereDTO);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+        Response<FiliereDTO> response = new Response<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            response = filiereService.createFiliere(filiereDTO);
 
+            logService.saveLog("Filière créée avec succès : " + filiereDTO.getName()+" par "+email);
+
+        } catch (Exception e) {
+            logService.saveLog("Erreur lors de la création de la filière : " + e.getMessage());
+
+            response.setMessage("Erreur lors de la création de la filière.");
+            response.setStatusCode(500);
+        }
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @GetMapping("/all")
@@ -43,7 +67,14 @@ public class FiliereController {
     @PutMapping("/updateFiliere/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<FiliereDTO>> updateFiliere(@PathVariable Long id, @RequestBody Filiere filiereDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
         Response<FiliereDTO> response= filiereService.updateFiliere(id, filiereDTO);
+        if (response.getStatusCode() == 201) {
+            logService.saveLog("la filliere  avec le nom : "+filiereDTO.getName()+" a été modifiée par "+email);
+        } else {
+            logService.saveLog("Échec de la modification du filiere avec ID: "+id );
+        }
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }
@@ -51,7 +82,15 @@ public class FiliereController {
     @DeleteMapping("/deleteFiliere/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteFiliere(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Filiere filliere=filiereRepository.findById(id).orElseThrow(()->new OurException("no filliere found")) ;
         Response<Void> response= filiereService.deleteFiliere(id);
+        if (response.getStatusCode() == 200) {
+            logService.saveLog("la filliere  avec le nom :  "+filliere.getName()+" a été supprimé par "+email);
+        } else {
+            logService.saveLog("Échec de la delete du filiere avec ID: "+id );
+        }
         return ResponseEntity.status(response.getStatusCode()).body(response);
 
     }

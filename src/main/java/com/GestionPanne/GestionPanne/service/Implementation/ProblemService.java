@@ -7,25 +7,26 @@ import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.PostRepository;
 import com.GestionPanne.GestionPanne.repo.ProblemRepository;
 import com.GestionPanne.GestionPanne.repo.UserRepository;
+//import com.GestionPanne.GestionPanne.service.AwsS3Service;
 import com.GestionPanne.GestionPanne.service.Interface.IProblemService;
 import com.GestionPanne.GestionPanne.utils.Utils;
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Call;
-import com.twilio.rest.lookups.v2.PhoneNumber;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.UUID;
+
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import jakarta.mail.internet.MimeMessage;
 
-import java.net.URI;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 
 @Service
@@ -42,8 +43,8 @@ public class ProblemService implements IProblemService {
 
     @Autowired
     private JavaMailSender mailSender;
-    @Autowired
-    private UserService userService;
+
+
 
 
     @Override
@@ -51,63 +52,75 @@ public class ProblemService implements IProblemService {
         Response<ProblemDTO> response = new Response<>();
         try {
             if (userId == null || postId == null || problemRequest == null) {
-                throw new IllegalArgumentException("L'utilisateur, le poste et le rapport de problème ne peuvent pas être nulls.");
+                throw new OurException("L'utilisateur, le poste et le rapport de problème ne peuvent pas être nulls.");
             }
 
+            // Vérification de l'utilisateur
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new OurException("Utilisateur non trouvé avec l'ID : " + userId));
 
-            if (!user.getRole().equals("ADMIN") && !user.isSupervisor()) {
-                throw new OurException("Only supervisors can report a problem.");
+            // Vérification des permissions
+            if (!"ADMIN".equals(user.getRole()) && !user.isSupervisor()) {
+                throw new OurException("Seuls les superviseurs ou admins peuvent signaler un problème.");
             }
 
-            Post post = postRepository.findById(Math.toIntExact(postId))
-                    .orElseThrow(() -> new OurException("Poste non trouvé avec l'ID : " + postId));
-
-            // Vérification que l'utilisateur appartient bien à ce poste
+            // Vérification du post
+            Post post = postRepository.findById(postId);
             if (!post.getUsers().contains(user)) {
                 throw new OurException("L'utilisateur ne fait pas partie de ce poste.");
             }
 
+
+
             problemRequest.setUser(user);
             problemRequest.setPost(post);
-
-            // Définition d'une priorité par défaut si non spécifiée
-            if (problemRequest.getPriority() == null) {
-                problemRequest.setPriority(Priority.MEDIUM);
-            }
-
-            // Définition de l'état initial
+            problemRequest.setPriority(problemRequest.getPriority() != null ? problemRequest.getPriority() : Priority.MEDIUM);
             problemRequest.setEtat(Etat.PENDING);
+            problemRequest.setFailureDate(problemRequest.getFailureDate() != null ? problemRequest.getFailureDate() : LocalDateTime.now());
 
-            // Définition de failureDate par défaut si non fournie
-            if (problemRequest.getFailureDate() == null) {
-                problemRequest.setFailureDate(new Date()); // Date d'aujourd'hui
-            }
-
-            // Sauvegarde du problème
             Problem savedProblem = problemRepository.save(problemRequest);
 
-            // Envoi de l'email de signalement
-            sendProblemReportEmail(savedProblem);
+            //sendProblemReportEmail(savedProblem);***********************************************************
 
-            // Envoi d'un appel téléphonique avec les informations du problème
-
-
+            // Construction de la réponse
             response.setStatusCode(201);
             response.setMessage("Problème signalé avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(savedProblem));
-        } catch (IllegalArgumentException e) {
-            response.setStatusCode(400);
-            response.setMessage("Entrée invalide : " + e.getMessage());
+
         } catch (OurException e) {
-            response.setStatusCode(403); // Accès refusé
+            response.setStatusCode(403);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Erreur interne : " + e.getMessage());
         }
         return response;
+    }
+
+
+
+
+
+
+
+
+    // Méthode pour sauvegarder l'image et retourner son chemin
+    private String saveImage(MultipartFile imageFile) throws IOException {
+        // Dossier où les images seront stockées
+        Path uploadDir = Paths.get("uploads");
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+
+        // Générer un nom de fichier unique
+        String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
+
+        // Sauvegarder l'image sur le serveur
+        Path filePath = uploadDir.resolve(fileName);
+        Files.copy(imageFile.getInputStream(), filePath);
+
+        // Retourner le chemin relatif de l'image
+        return filePath.toString();
     }
 
     // Méthode pour envoyer un appel téléphonique avec les informations du problème
@@ -210,8 +223,7 @@ public class ProblemService implements IProblemService {
     public Response<List<ProblemDTO>> getAllProblems() {
         Response<List<ProblemDTO>> response = new Response<>();
         try {
-            // Récupérer tous les problèmes
-            List<Problem> problems = problemRepository.findAll();
+            List<Problem> problems = problemRepository.findAllOrderedByPriority();
 
             // Construire la réponse
             response.setStatusCode(200); // 200 OK
@@ -260,7 +272,7 @@ public class ProblemService implements IProblemService {
             existingProblem.setPost(problemRequest.getPost());
             existingProblem.setPriority(problemRequest.getPriority());
             existingProblem.setEtat(problemRequest.getEtat());
-            existingProblem.setFailureDate(new Date());
+            existingProblem.setFailureDate(LocalDateTime.now());
 
 
 
@@ -329,13 +341,22 @@ public class ProblemService implements IProblemService {
         try {
             // Récupérer les problèmes par utilisateur
             List<Problem> problems = problemRepository.findByUserId(userId);
-            User user=userRepository.findById(userId)
-                    .orElseThrow(()-> new OurException("User avec l'ID introuvable."));
+
+            // Vérifier si l'utilisateur existe
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new OurException("Utilisateur avec l'ID " + userId + " introuvable."));
+
+            // Vérification si l'utilisateur est un superviseur
+            boolean isSupervisor = user.getIsSupervisor();
+
+            // Mapper les problèmes à partir de l'entité Problem
+            List<ProblemDTO> problemDTOs = Utils.mapProblemListEntityToProblemListDTO(problems);
+
             // Construire la réponse
-            response.setStatusCode(200);
-            response.setSupervisor(user.getIsSupervisor());// 200 OK
+            response.setStatusCode(200); // 200 OK
+            response.setSupervisor(isSupervisor);
             response.setMessage("Problèmes pour l'utilisateur récupérés avec succès.");
-            response.setData(Utils.mapProblemListEntityToProblemListDTO(problems));
+            response.setData(problemDTOs);
         } catch (Exception e) {
             response.setStatusCode(500); // 500 Internal Server Error
             response.setMessage("Erreur interne : " + e.getMessage());
@@ -343,18 +364,24 @@ public class ProblemService implements IProblemService {
         return response;
     }
 
+
     @Override
     public Response<ProblemDTO> validateProblem(Long id) {
         Response<ProblemDTO> response = new Response<>();
         try {
             Problem problem = problemRepository.findById(Math.toIntExact(id))
                     .orElseThrow(() -> new OurException("Problème avec l'ID " + id + " introuvable."));
+
             if (problem.getSolutionDate() == null) {
-                problem.setSolutionDate(new Date()); // Date d'aujourd'hui
+                // Utilisation de LocalDateTime pour inclure la date et l'heure actuelles
+                LocalDateTime currentDateTime = LocalDateTime.now();
+                problem.setSolutionDate(LocalDateTime.now()); // Convertir LocalDateTime en Timestamp
             }
+
             problem.setEtat(Etat.FINISHED);
             Problem updatedProblem = problemRepository.save(problem);
             sendProblemValidateEmail(updatedProblem);
+
             response.setStatusCode(200);
             response.setMessage("Problème validé avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));
@@ -367,6 +394,7 @@ public class ProblemService implements IProblemService {
         }
         return response;
     }
+
 
     @Override
     public Response<ProblemDTO> assignProblemToTeam(Long id) {

@@ -7,8 +7,8 @@ import java.util.List;
 public class ProjectDTO {
     private long id;
     private String nameProject;
-    private long familyId; // Ou FamilyDTO si nécessaire
-    private long filiereId;
+    private Long familyId; // Ou FamilyDTO si nécessaire
+    private Long filiereId;
     private String familyName;
     private String filiereName;// Ou FiliereDTO si nécessaire
 }

@@ -3,8 +3,10 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 import com.GestionPanne.GestionPanne.dto.FamilyDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Family;
+import com.GestionPanne.GestionPanne.entity.Project;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.FamilyRepository;
+import com.GestionPanne.GestionPanne.repo.ProjectRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IFamilyService;
 import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ public class FamilyService implements IFamilyService {
 
     @Autowired
     private FamilyRepository familyRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Override
     public Response<FamilyDTO> createFamily(Family familyRequest) {
@@ -120,10 +124,21 @@ public class FamilyService implements IFamilyService {
             Family family = familyRepository.findById(familyId)
                     .orElseThrow(() -> new OurException("Family not found with ID: " + familyId));
 
+            // Récupérer tous les projets associés à cette famille
+            List<Project> projects = projectRepository.findByFamilyId(familyId);
+
+            // Mettre leur family à null
+            for (Project project : projects) {
+                project.setFamily(null);
+                projectRepository.save(project); // Sauvegarder la mise à jour
+            }
+
+            // Maintenant, on peut supprimer la famille en toute sécurité
             familyRepository.delete(family);
 
             response.setStatusCode(200); // 200 OK
-            response.setMessage("Family deleted successfully");
+            response.setMessage("Family deleted successfully, projects updated");
+
         } catch (OurException e) {
             response.setStatusCode(404); // 404 Not Found
             response.setMessage(e.getMessage());
@@ -133,4 +148,5 @@ public class FamilyService implements IFamilyService {
         }
         return response;
     }
+
 }

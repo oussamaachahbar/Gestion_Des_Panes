@@ -4,6 +4,7 @@ import com.GestionPanne.GestionPanne.dto.*;
 import com.GestionPanne.GestionPanne.entity.*;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,8 +60,21 @@ public class Utils {
         ProjectDTO projectDTO = new ProjectDTO();
         projectDTO.setId(project.getId());
         projectDTO.setNameProject(project.getNameProject());
-        projectDTO.setFamilyName(project.getFamily().getName());
-        projectDTO.setFiliereName(project.getFiliere().getName());
+        if(project.getFamily()!=null) {
+            projectDTO.setFamilyName(project.getFamily().getName());
+            projectDTO.setFamilyId(project.getFamily().getId());
+        }else{
+            projectDTO.setFamilyName("Non Family");
+            projectDTO.setFamilyId(null);
+        }
+        if(project.getFiliere()!=null) {
+            projectDTO.setFiliereName(project.getFiliere().getName());
+            projectDTO.setFiliereId(project.getFiliere().getId());
+
+        }else{
+            projectDTO.setFiliereName("Non Filiere");
+            projectDTO.setFiliereId(null);
+        }
 
         return projectDTO;
     }
@@ -90,15 +104,27 @@ public class Utils {
         postDTO.setName(post.getName());
         postDTO.setDescription(post.getDescription());
         postDTO.setPosition(post.getPosition());
-        postDTO.setProjectId(post.getProject().getId());
-        postDTO.setProjectName(post.getProject().getNameProject());
-        postDTO.setUsers(post.getUsers().stream().map(Utils::mapUserEntityToUserDTO).collect(Collectors.toList()));
-        postDTO.setProblems(post.getProblems().stream().map(Utils::mapProblemEntityToProblemDTO).collect(Collectors.toList()));
+
+        if (post.getProject() != null) {
+            postDTO.setProjectId(post.getProject().getId());
+            postDTO.setProjectName(post.getProject().getNameProject());
+        } else {
+            postDTO.setProjectId(null); // Ou une valeur par défaut si nécessaire
+            postDTO.setProjectName("Projet non attribué"); // Valeur par défaut
+        }
+
+        postDTO.setUsers(post.getUsers() != null
+                ? post.getUsers().stream().map(Utils::mapUserEntityToUserDTO).collect(Collectors.toList())
+                : new ArrayList<>());
+
+        postDTO.setProblems(post.getProblems() != null
+                ? post.getProblems().stream().map(Utils::mapProblemEntityToProblemDTO).collect(Collectors.toList())
+                : new ArrayList<>());
 
         return postDTO;
     }
 
-    // 🟢 Mapping de l'entité Problem vers ProblemDTO
+
     public static ProblemDTO mapProblemEntityToProblemDTO(Problem problem) {
         ProblemDTO problemDTO = new ProblemDTO();
         problemDTO.setId(problem.getId());
@@ -110,14 +136,34 @@ public class Utils {
         problemDTO.setFailureDate(problem.getFailureDate());
         problemDTO.setSolutionDate(problem.getSolutionDate());
         problemDTO.setFailureDetails(problem.getFailureDetails());
+
+        // Convertir les enums en String
         if (problem.getPriority() != null) {
-            problemDTO.setPriority(problem.getPriority().name()); // Convertir l'enum en String
+            problemDTO.setPriority(problem.getPriority().name());
         }
         if (problem.getEtat() != null) {
-            problemDTO.setEtat(problem.getEtat().name()); // Convertir l'enum en String
+            problemDTO.setEtat(problem.getEtat().name());
         }
+
+        // Ajouter l'URL de l'image si elle existe
+
         return problemDTO;
     }
+    public static List<logDTO> mapLogListEntityToLogListDTO(List<Log> logList) {
+        List<logDTO> logDTOList = new ArrayList<>();
+        for (Log log : logList) {
+            logDTO logDTO = new logDTO();
+            logDTO.setId(log.getId());
+            logDTO.setMessage(log.getAction());
+            logDTO.setDate(log.getCreatedAt());
+            logDTOList.add(logDTO);
+        }
+        return logDTOList;
+    }
+
+
+
+
 
     // 🔄 Mapping avancé : Ajouter la liste des problèmes dans PostDTO
     public static PostDTO mapPostEntityToPostDTOWithProblems(Post post) {
@@ -166,4 +212,5 @@ public class Utils {
     public static List<ProblemDTO> mapProblemListEntityToProblemListDTO(List<Problem> problemList) {
         return problemList.stream().map(Utils::mapProblemEntityToProblemDTO).collect(Collectors.toList());
     }
+
 }

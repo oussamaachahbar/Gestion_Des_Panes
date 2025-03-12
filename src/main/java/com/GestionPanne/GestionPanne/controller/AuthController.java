@@ -4,6 +4,7 @@ import com.GestionPanne.GestionPanne.dto.LoginRequest;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.UserDTO;
 import com.GestionPanne.GestionPanne.entity.User;
+import com.GestionPanne.GestionPanne.repo.ProjectRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,9 @@ public class AuthController {
 
     @Autowired
     private IUserService userService;
+    @Autowired
+    private ProjectRepository ProjectRepository;
+
 
     @PostMapping("/add/{postId}")
     public ResponseEntity<Response<UserDTO>> createUser(@PathVariable Long postId, @RequestBody User user) {
@@ -27,4 +31,7 @@ public class AuthController {
         Response<String> response = userService.login(loginRequest);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
+
+
 }

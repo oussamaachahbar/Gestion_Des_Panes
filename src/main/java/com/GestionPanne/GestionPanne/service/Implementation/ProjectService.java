@@ -116,28 +116,34 @@ public class ProjectService implements IProjectService {
     public Response<ProjectDTO> updateProject(long projectId, Project project) {
         Response<ProjectDTO> response = new Response<>();
         try {
-            if (!projectRepository.existsById(projectId)) {
-                throw new OurException("Filiere not found with ID: " + projectId);
-            }
             Optional<Project> projectOpt = projectRepository.findById(projectId);
+            if (!projectOpt.isPresent()) {
+                throw new OurException("Project not found with ID: " + projectId);
+            }
+
             Project existingProject = projectOpt.get();
             existingProject.setNameProject(project.getNameProject());
             existingProject.setPosts(project.getPosts());
-            existingProject.setFamily(project.getFamily());
-            existingProject.setFiliere(project.getFiliere());
+
+            if (project.getFamily() != null) {
+                existingProject.setFamily(project.getFamily());
+            }
+            if (project.getFiliere() != null) {
+                existingProject.setFiliere(project.getFiliere());
+            }
 
             Project updatedProject = projectRepository.save(existingProject);
             ProjectDTO projectDTO = Utils.mapProjectEntityToProjectDTO(updatedProject);
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Project updated successfully");
-            response.setData(projectDTO); // Utilisation de setData pour une réponse unique
+            response.setData(projectDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            e.printStackTrace(); // Pour voir l'erreur exacte
+            response.setStatusCode(500);
             response.setMessage("Error updating project: " + e.getMessage());
         }
         return response;

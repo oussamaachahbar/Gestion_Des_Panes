@@ -8,30 +8,33 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 
 @Service
 public class JWTUtils {
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
+    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 7; // 7 jours
     private final SecretKey key;
 
     public JWTUtils() {
-        // Ideally, use a more secure method for fetching your secret key
+        // Clé secrète suffisamment longue pour HMAC-SHA256
         String secretString = "843567893696976453275974432697R634976R738467TR678T34865R6834R8763T478378637664538745673865783678548735687R3";
-        byte[] keyBytes = Base64.getDecoder().decode(secretString);
-        this.key = Keys.hmacShaKeyFor(keyBytes); // Utilisation correcte de la clé secrète avec HMAC-SHA
+        this.key = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8)); // Utilisation correcte de la clé
     }
 
     public String generateToken(UserDetails userDetails) {
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername()) // Utiliser setSubject() pour la version correcte
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key)
-                .compact();
+        try {
+            return Jwts.builder()
+                    .setSubject(userDetails.getUsername())
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                    .signWith(key)
+                    .compact();
+        } catch (JwtException e) {
+            throw new RuntimeException("Erreur lors de la génération du token", e);
+        }
     }
 
     public String extractUsername(String token) {
@@ -47,7 +50,7 @@ public class JWTUtils {
         return claimsResolver.apply(claims);
     }
 
-    public boolean isValidToken(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
@@ -56,12 +59,10 @@ public class JWTUtils {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
-    // Handle any exceptions when parsing the token
     public boolean isTokenValidWithExceptionHandling(String token, UserDetails userDetails) {
         try {
-            return isValidToken(token, userDetails);
+            return isTokenValid(token, userDetails);
         } catch (JwtException | IllegalArgumentException e) {
-            // Handle the exception (e.g., logging or throwing a custom exception)
             return false;
         }
     }

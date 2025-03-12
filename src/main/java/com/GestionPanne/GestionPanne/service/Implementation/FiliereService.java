@@ -3,9 +3,11 @@ package com.GestionPanne.GestionPanne.service.Implementation;
 import com.GestionPanne.GestionPanne.dto.FiliereDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Filiere;
+import com.GestionPanne.GestionPanne.entity.Project;
 import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.FiliereRepository;
+import com.GestionPanne.GestionPanne.repo.ProjectRepository;
 import com.GestionPanne.GestionPanne.service.Interface.IFiliereService;
 import com.GestionPanne.GestionPanne.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,8 @@ public class FiliereService implements IFiliereService {
 
     @Autowired
     private FiliereRepository filiereRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Override
     public Response<List<FiliereDTO>> getAllFilieres() {
@@ -137,7 +141,13 @@ public class FiliereService implements IFiliereService {
         try {
             Filiere filiere = filiereRepository.findById(id)
                     .orElseThrow(() -> new OurException("Filière not found with ID: " + id));
+            List<Project> projects = projectRepository.findByFiliereId(id);
 
+            // Mettre leur family à null
+            for (Project project : projects) {
+                project.setFiliere(null);
+                projectRepository.save(project); // Sauvegarder la mise à jour
+            }
             filiereRepository.delete(filiere);
 
             response.setStatusCode(200); // 200 OK

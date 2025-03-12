@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -15,6 +16,7 @@ public class Problem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,13 +27,13 @@ public class Problem {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Temporal(TemporalType.DATE)
-    private Date failureDate;
 
-    @Temporal(TemporalType.DATE)
-    private Date solutionDate;
+    private LocalDateTime failureDate = LocalDateTime.now();
+
+    private LocalDateTime solutionDate;
 
     @NotBlank
+    @Column(length = 1000)
     private String failureDetails;
 
     @Enumerated(EnumType.STRING)
@@ -39,4 +41,5 @@ public class Problem {
 
     @Enumerated(EnumType.STRING)
     private Etat etat;
+
 }

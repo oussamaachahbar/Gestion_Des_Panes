@@ -173,7 +173,13 @@ public class PostService implements IPostService {
     public Response<PostDTO> updatePost(Long postId, Post postRequest) {
         Response<PostDTO> response = new Response<>();
         try {
-            Post existingPost = postRepository.findById(postId);
+            // Vérifier si le post existe
+            Optional<Post> optionalPost = Optional.ofNullable(postRepository.findById(postId));
+            if (!optionalPost.isPresent()) {
+                throw new OurException("Post not found");
+            }
+
+            Post existingPost = optionalPost.get();
 
             if (postRequest.getName() != null) {
                 existingPost.setName(postRequest.getName());
@@ -187,17 +193,20 @@ public class PostService implements IPostService {
             if (postRequest.getProject() != null) {
                 existingPost.setProject(postRequest.getProject());
             }
-            Post post=postRepository.findById(postId);
-            if (postRequest.getUsers() == null) {
-                existingPost.setUsers(post.getUsers());
+
+            // Vérification des relations (Users & Problems)
+            if (postRequest.getUsers() != null) {
+                existingPost.setUsers(postRequest.getUsers());
             }
-            if (postRequest.getProblems() == null) {
-                existingPost.setProblems(post.getProblems());
+            if (postRequest.getProblems() != null) {
+                existingPost.setProblems(postRequest.getProblems());
             }
 
+            // Sauvegarde de la mise à jour
             Post updatedPost = postRepository.save(existingPost);
             PostDTO postDTO = Utils.mapPostEntityToPostDTO(updatedPost);
 
+            // Réponse réussie
             response.setStatusCode(200);
             response.setMessage("Post updated successfully");
             response.setData(postDTO);
@@ -210,6 +219,7 @@ public class PostService implements IPostService {
         }
         return response;
     }
+
 
 
     @Override

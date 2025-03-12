@@ -5,6 +5,7 @@ import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Problem;
 import com.GestionPanne.GestionPanne.entity.Project;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface IProblemService
 {

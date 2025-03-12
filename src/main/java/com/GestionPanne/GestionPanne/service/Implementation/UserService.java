@@ -44,24 +44,30 @@ public class UserService implements IUserService {
                 throw new OurException("Email already exists: " + user.getEmail());
             }
 
+            // Si l'utilisateur est un ADMIN, on assigne null au post
             if ("ADMIN".equals(user.getRole())) {
-                postId = null;
+                postId = null;  // Assigner null pour un ADMIN
             }
 
             Post post = null;
             if (postId != null) {
                 post = postRepository.findById(postId);
 
-                // Vérifier si le post a déjà un superviseur
-                boolean hasSupervisor = post.getUsers().stream().anyMatch(User::getIsSupervisor);
-                if (user.getIsSupervisor() && hasSupervisor) {
-                    throw new OurException("This post already has a supervisor. Only one supervisor is allowed per post.");
+                // Vérifier si le post est trouvé et s'il a déjà un superviseur
+                if (post != null) {
+                    boolean hasSupervisor = post.getUsers().stream().anyMatch(User::getIsSupervisor);
+                    if (user.getIsSupervisor() && hasSupervisor) {
+                        throw new OurException("This post already has a supervisor. Only one supervisor is allowed per post.");
+                    }
+                } else {
+                    throw new OurException("Post not found for the given postId.");
                 }
             }
 
+            // Si le post est null (par exemple pour un ADMIN), il n'y a pas de vérification de superviseur
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setIsSupervisor(user.getIsSupervisor());
-            user.setPost(post); // Assigne null si l'utilisateur est ADMIN
+            user.setPost(post);  // `null` sera assigné si le postId est null (par exemple pour un ADMIN)
 
             User savedUser = userRepository.save(user);
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(savedUser);
@@ -78,6 +84,9 @@ public class UserService implements IUserService {
         }
         return response;
     }
+
+
+
     @Override
     public Response<UserDTO> registreUser(Long postId, User user) {
         Response<UserDTO> response = new Response<>();
@@ -153,8 +162,11 @@ public class UserService implements IUserService {
             User user = userRepository.findByEmail(loginRequest.getEmail())
                     .orElseThrow(() -> new OurException("User not found"));
 
-            // Générer le token JWT
+            // Générer le token JWT (chaque utilisateur reçoit son propre token)
             String token = jwtUtils.generateToken(user);
+
+            // Vous pouvez éventuellement stocker ce token dans une base de données pour pouvoir le révoquer plus tard (facultatif)
+            // stockSessionInDatabase(user.getId(), token);
 
             // Construire la réponse
             response.setStatusCode(200); // 200 OK
@@ -173,6 +185,7 @@ public class UserService implements IUserService {
         }
         return response;
     }
+
 
     @Override
     public Response<List<UserDTO>> getAllUsers() {
@@ -288,12 +301,9 @@ public class UserService implements IUserService {
             boolean wasSupervisor = existingUser.getIsSupervisor() != null && existingUser.getIsSupervisor();
             boolean wantsToBeSupervisor = user.getIsSupervisor() != null && user.getIsSupervisor();
 
-            // Vérification avant mise à jour du statut de superviseur
             if (!wasSupervisor && wantsToBeSupervisor) {
                 if (existingUser.getPost() != null) {
                     Long postId = existingUser.getPost().getId();
-
-                    // Vérifier si un superviseur existe déjà pour ce poste
                     boolean postHasSupervisor = userRepository.existsByPostIdAndIsSupervisorTrue(postId);
                     if (postHasSupervisor) {
                         throw new OurException("This post already has a supervisor. You cannot assign another one.");
@@ -333,8 +343,12 @@ public class UserService implements IUserService {
             }
 
             User existingUser = userOpt.get();
+
+            // Déterminer si l'utilisateur était déjà un superviseur
             boolean wasSupervisor = existingUser.getIsSupervisor() != null && existingUser.getIsSupervisor();
-            boolean wantsToBeSupervisor = user.getIsSupervisor() != null && user.getIsSupervisor();
+
+            // Déterminer si l'utilisateur souhaite devenir un superviseur
+            boolean wantsToBeSupervisor = user.getIsSupervisor() != null ? user.getIsSupervisor() : existingUser.getIsSupervisor();
 
             // Vérification avant mise à jour du statut de superviseur
             if (!wasSupervisor && wantsToBeSupervisor) {
@@ -346,18 +360,23 @@ public class UserService implements IUserService {
                     if (postHasSupervisor) {
                         throw new OurException("This post already has a supervisor. You cannot assign another one.");
                     }
+                } else {
+                    throw new OurException("User must be assigned to a post to become a supervisor.");
                 }
             }
 
             // Vérifier si le post existe avant de l'affecter
             Post posteNow = postRepository.findById(postIde);
+            if (posteNow == null) {
+                throw new OurException("Post not found with ID: " + postIde);
+            }
 
             // Mise à jour des informations de l'utilisateur
             existingUser.setEmail(user.getEmail());
             existingUser.setRole(user.getRole());
             existingUser.setPhone(user.getPhone());
             existingUser.setName(user.getName());
-            existingUser.setIsSupervisor(wantsToBeSupervisor);
+            existingUser.setIsSupervisor(wantsToBeSupervisor); // Utiliser la valeur corrigée
             existingUser.setPost(posteNow); // Affectation du poste
 
             if (user.getPassword() != null && !user.getPassword().isEmpty()) {

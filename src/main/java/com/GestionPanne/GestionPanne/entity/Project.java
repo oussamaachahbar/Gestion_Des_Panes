@@ -19,11 +19,11 @@ public class Project {
     private String nameProject;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "family_id", nullable = false)
+    @JoinColumn(name = "family_id", nullable = true)
     private Family family;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "filiere_id", nullable = false)
+    @JoinColumn(name = "filiere_id", nullable = true)
     private Filiere filiere;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
