@@ -27,11 +27,11 @@ public class LogService {
         try {
             List<Log> logs = logRepository.findAll();
             List<logDTO> logDTOList = Utils.mapLogListEntityToLogListDTO(logs);
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Logs retrieved successfully");
-            response.setData(logDTOList); // Utilisation de setData pour une liste de données
+            response.setData(logDTOList);
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving Logs: " + e.getMessage());
         }
         return response;

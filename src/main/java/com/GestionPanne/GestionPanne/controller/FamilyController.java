@@ -70,10 +70,10 @@ public class FamilyController {
     public ResponseEntity<Response<FamilyDTO>> updateFamily(@PathVariable Long id, @RequestBody Family familyDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-
+        Family famille=familyRepository.findById(id).orElseThrow(()->new OurException("NO FAMILY FOUND"));
         Response<FamilyDTO> response= familyService.updateFamily(id,familyDTO);
         if (response.getStatusCode() == 200) {
-            logService.saveLog("la famille  avec le nom :  "+familyDTO.getName()+" a été modifié par "+email);
+            logService.saveLog("la famille  avec le nom :  "+famille.getName()+" avec ID : "+id+" a été modifié par "+email);
         } else {
             logService.saveLog("Échec de la modification du familly avec ID: "+id );
         }
@@ -89,7 +89,7 @@ public class FamilyController {
         Family family=familyRepository.findById(id).orElseThrow(()->new OurException("no family found")) ;
         Response<Void> response= familyService.deleteFamily(id);
         if (response.getStatusCode() == 200) {
-            logService.saveLog("la famille  avec le nom : "+family.getName()+" a été supprimé par "+email);
+            logService.saveLog("la famille  avec le nom : "+family.getName()+" avec ID :  "+id+" à été supprimé par "+email);
         } else {
             logService.saveLog("Échec de la delete du familly avec ID: "+id );
         }

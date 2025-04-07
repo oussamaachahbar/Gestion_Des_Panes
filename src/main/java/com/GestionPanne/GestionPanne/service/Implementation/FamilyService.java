@@ -38,10 +38,10 @@ public class FamilyService implements IFamilyService {
             response.setMessage("Family created successfully");
             response.setData(familyDTO);
         } catch (OurException e) {
-            response.setStatusCode(400); // 400 Bad Request
+            response.setStatusCode(400);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error creating family: " + e.getMessage());
         }
         return response;
@@ -51,16 +51,14 @@ public class FamilyService implements IFamilyService {
     public Response<List<FamilyDTO>> getAllFamilies() {
         Response<List<FamilyDTO>> response = new Response<>();
         try {
-            // Récupérer toutes les familles
             List<Family> families = familyRepository.findAll();
             List<FamilyDTO> familyDTOList = Utils.mapFamilyListEntityToFamilyListDTO(families);
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Families retrieved successfully");
-            response.setData(familyDTOList); // Utilisation de setDataList pour une liste de données
+            response.setData(familyDTOList);
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving families: " + e.getMessage());
         }
         return response;
@@ -70,20 +68,18 @@ public class FamilyService implements IFamilyService {
     public Response<FamilyDTO> getFamilyById(Long familyId) {
         Response<FamilyDTO> response = new Response<>();
         try {
-            // Récupérer la famille par son ID
             Family family = familyRepository.findById(familyId)
                     .orElseThrow(() -> new OurException("Family not found with ID: " + familyId));
             FamilyDTO familyDTO = Utils.mapFamilyEntityToFamilyDTO(family);
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Family retrieved successfully");
-            response.setData(familyDTO); // Utilisation de setData pour une réponse unique
+            response.setData(familyDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving family: " + e.getMessage());
         }
         return response;
@@ -93,7 +89,6 @@ public class FamilyService implements IFamilyService {
     public Response<FamilyDTO> updateFamily(Long familyid,Family familyRequest) {
         Response<FamilyDTO> response = new Response<>();
         try {
-            // Vérifier si la famille existe
             if (!familyRepository.existsById(familyid)) {
                 throw new OurException("Family not found with ID: " + familyRequest.getId());
             }
@@ -103,15 +98,14 @@ public class FamilyService implements IFamilyService {
             Family updatedFamily = familyRepository.save(existingFamille);
             FamilyDTO familyDTO = Utils.mapFamilyEntityToFamilyDTO(updatedFamily);
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Family updated successfully");
-            response.setData(familyDTO); // Utilisation de setData pour une réponse unique
+            response.setData(familyDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error updating family: " + e.getMessage());
         }
         return response;
@@ -124,26 +118,22 @@ public class FamilyService implements IFamilyService {
             Family family = familyRepository.findById(familyId)
                     .orElseThrow(() -> new OurException("Family not found with ID: " + familyId));
 
-            // Récupérer tous les projets associés à cette famille
             List<Project> projects = projectRepository.findByFamilyId(familyId);
 
-            // Mettre leur family à null
             for (Project project : projects) {
                 project.setFamily(null);
-                projectRepository.save(project); // Sauvegarder la mise à jour
+                projectRepository.save(project);
             }
-
-            // Maintenant, on peut supprimer la famille en toute sécurité
             familyRepository.delete(family);
 
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Family deleted successfully, projects updated");
 
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error deleting family: " + e.getMessage());
         }
         return response;

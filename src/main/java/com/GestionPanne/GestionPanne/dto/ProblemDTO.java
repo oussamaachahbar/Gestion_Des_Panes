@@ -18,6 +18,8 @@ public class ProblemDTO {
     private LocalDateTime failureDate;
     private LocalDateTime solutionDate;
     private String failureDetails;
-    private String priority; // Enum Priority converti en String
+    private String priority;
     private String etat;
+    private String imageUrl;
+
 }

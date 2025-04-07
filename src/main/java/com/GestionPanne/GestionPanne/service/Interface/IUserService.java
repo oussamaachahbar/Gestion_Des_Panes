@@ -26,4 +26,5 @@ public interface IUserService {
     Response<PostDTO> getUserPost();
 
 
+    Response<Void> resetPassword(String email, String newPassword);
 }

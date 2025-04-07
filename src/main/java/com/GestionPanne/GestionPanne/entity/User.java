@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -24,14 +25,20 @@ public class User implements UserDetails {
     private String password;
 
     private String name;
+    @Column(unique = true)
+    private String cin;
+
     private String email;
     private String phone;
     private String role;
     private Boolean isSupervisor;
-
+    private boolean status=false;
+    private LocalTime startTime;
+    private LocalTime endTime;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = true)
     private Post post;
+
     public Post getPost() {
         return "ADMIN".equals(this.role) ? null : post;
     }
@@ -40,7 +47,7 @@ public class User implements UserDetails {
         if (!"ADMIN".equals(this.role)) {
             this.post = post;
         } else {
-            this.post = null; // Empêcher l'assignation pour un ADMIN
+            this.post = null;
         }
     }
 
@@ -52,6 +59,11 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
     }
 
     @Override
@@ -80,7 +92,6 @@ public class User implements UserDetails {
     }
 
     public boolean isSupervisor() {
-        return !"ADMIN".equals(this.role) && this.isSupervisor;
+        return !"ADMIN".equals(this.role) && Boolean.TRUE.equals(this.isSupervisor);
     }
-
 }

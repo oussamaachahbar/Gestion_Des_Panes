@@ -1,8 +1,6 @@
 package com.GestionPanne.GestionPanne.controller;
-import com.GestionPanne.GestionPanne.dto.FamilyDTO;
 import com.GestionPanne.GestionPanne.dto.FiliereDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
-import com.GestionPanne.GestionPanne.entity.Family;
 import com.GestionPanne.GestionPanne.entity.Filiere;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.FiliereRepository;
@@ -25,7 +23,7 @@ public class FiliereController {
     private IFiliereService filiereService;
 
     @Autowired
-    private LogService logService;  // Ajout du service de logs
+    private LogService logService;
     @Autowired
     private FiliereRepository filiereRepository;
 
@@ -69,9 +67,10 @@ public class FiliereController {
     public ResponseEntity<Response<FiliereDTO>> updateFiliere(@PathVariable Long id, @RequestBody Filiere filiereDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        Filiere filiere=filiereRepository.findById(id).orElseThrow(()->new OurException("NO FILIERE FOUND"));
         Response<FiliereDTO> response= filiereService.updateFiliere(id, filiereDTO);
-        if (response.getStatusCode() == 201) {
-            logService.saveLog("la filliere  avec le nom : "+filiereDTO.getName()+" a été modifiée par "+email);
+        if (response.getStatusCode() == 200) {
+            logService.saveLog("la filliere  avec le nom : "+filiere.getName()+" avec ID : "+id+" a été modifiée par "+email);
         } else {
             logService.saveLog("Échec de la modification du filiere avec ID: "+id );
         }
@@ -87,7 +86,7 @@ public class FiliereController {
         Filiere filliere=filiereRepository.findById(id).orElseThrow(()->new OurException("no filliere found")) ;
         Response<Void> response= filiereService.deleteFiliere(id);
         if (response.getStatusCode() == 200) {
-            logService.saveLog("la filliere  avec le nom :  "+filliere.getName()+" a été supprimé par "+email);
+            logService.saveLog("la filliere  avec le nom :  "+filliere.getName()+" avec ID : "+id+" a été supprimé par "+email);
         } else {
             logService.saveLog("Échec de la delete du filiere avec ID: "+id );
         }

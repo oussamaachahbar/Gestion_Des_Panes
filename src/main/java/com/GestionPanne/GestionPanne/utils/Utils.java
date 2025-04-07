@@ -5,7 +5,6 @@ import com.GestionPanne.GestionPanne.entity.*;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,8 +31,12 @@ public class Utils {
         userDTO.setName(user.getName());
         userDTO.setEmail(user.getEmail());
         userDTO.setPhone(user.getPhone());
+        userDTO.setCin(user.getCin());
         userDTO.setRole(user.getRole());
         userDTO.setSupervisor(user.getIsSupervisor());
+        userDTO.setStatus(user.isStatus());
+        userDTO.setEndTime(user.getEndTime());
+        userDTO.setStartTime(user.getStartTime());
         if(user.getPost() != null) {
             userDTO.setPostName(user.getPost().getName());
 
@@ -43,10 +46,8 @@ public class Utils {
         }
 
         if ("ADMIN".equals(user.getRole())) {
-            // Si le rôle est "ADMIN", on ne définit pas de postId
             userDTO.setPostId(null);
         } else {
-            // Si ce n'est pas "ADMIN", on attribue l'id du post si présent
             userDTO.setPostId(user.getPost() != null ? user.getPost().getId() : null);
         }
 
@@ -55,7 +56,7 @@ public class Utils {
 
 
 
-    // 🟢 Mapping de l'entité Project vers ProjectDTO
+
     public static ProjectDTO mapProjectEntityToProjectDTO(Project project) {
         ProjectDTO projectDTO = new ProjectDTO();
         projectDTO.setId(project.getId());
@@ -79,7 +80,6 @@ public class Utils {
         return projectDTO;
     }
 
-    // 🟢 Mapping de l'entité Family vers FamilyDTO
     public static FamilyDTO mapFamilyEntityToFamilyDTO(Family family) {
         FamilyDTO familyDTO = new FamilyDTO();
         familyDTO.setId(family.getId());
@@ -87,7 +87,6 @@ public class Utils {
         return familyDTO;
     }
 
-    // 🟢 Mapping de l'entité Filiere vers FiliereDTO
     public static FiliereDTO mapFiliereEntityToFiliereDTO(Filiere filiere) {
         FiliereDTO filiereDTO = new FiliereDTO();
         filiereDTO.setId(filiere.getId());
@@ -97,7 +96,6 @@ public class Utils {
         return filiereDTO;
     }
 
-    // 🟢 Mapping de l'entité Post vers PostDTO
     public static PostDTO mapPostEntityToPostDTO(Post post) {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
@@ -136,8 +134,11 @@ public class Utils {
         problemDTO.setFailureDate(problem.getFailureDate());
         problemDTO.setSolutionDate(problem.getSolutionDate());
         problemDTO.setFailureDetails(problem.getFailureDetails());
+        problemDTO.setImageUrl(problem.getImageUrl());
 
-        // Convertir les enums en String
+
+
+
         if (problem.getPriority() != null) {
             problemDTO.setPriority(problem.getPriority().name());
         }
@@ -145,10 +146,9 @@ public class Utils {
             problemDTO.setEtat(problem.getEtat().name());
         }
 
-        // Ajouter l'URL de l'image si elle existe
-
         return problemDTO;
     }
+
     public static List<logDTO> mapLogListEntityToLogListDTO(List<Log> logList) {
         List<logDTO> logDTOList = new ArrayList<>();
         for (Log log : logList) {
@@ -165,7 +165,6 @@ public class Utils {
 
 
 
-    // 🔄 Mapping avancé : Ajouter la liste des problèmes dans PostDTO
     public static PostDTO mapPostEntityToPostDTOWithProblems(Post post) {
         PostDTO postDTO = mapPostEntityToPostDTO(post);
         if (post.getProblems() != null) {
@@ -176,7 +175,6 @@ public class Utils {
         return postDTO;
     }
 
-    // 🔄 Mapping avancé : Ajouter la liste des problèmes et posts dans UserDTO
     public static UserDTO mapUserEntityToUserDTOWithPostsAndProblems(User user) {
         UserDTO userDTO = mapUserEntityToUserDTO(user);
         if (user.getPost() != null) {
@@ -188,7 +186,6 @@ public class Utils {
         return userDTO;
     }
 
-    // 📜 Conversion de listes d'entités vers listes de DTOs
     public static List<UserDTO> mapUserListEntityToUserListDTO(List<User> userList) {
         return userList.stream().map(Utils::mapUserEntityToUserDTO).collect(Collectors.toList());
     }

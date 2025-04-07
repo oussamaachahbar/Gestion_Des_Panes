@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface FiliereRepository extends JpaRepository<Filiere, Long> {
     boolean existsByName(String name);
-    Optional<Filiere> findByName(String name);// Correction du type ID
+    Optional<Filiere> findByName(String name);
 
 }

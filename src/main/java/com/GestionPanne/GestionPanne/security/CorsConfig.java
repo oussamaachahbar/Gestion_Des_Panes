@@ -16,10 +16,10 @@ public class CorsConfig {
                 // Autorise toutes les origines
                 registry.addMapping("/**")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedOrigins("*") // Permet l'accès depuis n'importe quel domaine
-                        .allowedHeaders("*") // Autorise tous les en-têtes
-                        .exposedHeaders("Authorization") // Autorise l'en-tête Authorization pour JWT
-                        .allowCredentials(false); // Désactiver si aucune authentification basée sur les cookies n'est nécessaire
+                        .allowedOrigins("*")
+                        .allowedHeaders("*")
+                        .exposedHeaders("Authorization")
+                        .allowCredentials(false);
             }
         };
     }

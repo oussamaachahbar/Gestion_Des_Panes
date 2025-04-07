@@ -21,6 +21,5 @@ public class StartupRunner implements CommandLineRunner {
         projectRepository.makeFamilyIdNullable();
         projectRepository.makeFiliereIdNullable();
         userRepository.makePostIdNullable();
-        System.out.println("✅ Modification des colonnes 'family_id' et 'filiere_id et post_id' appliquée avec succès !");
     }
 }

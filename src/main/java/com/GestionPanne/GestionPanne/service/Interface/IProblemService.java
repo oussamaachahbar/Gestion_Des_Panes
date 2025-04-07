@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface IProblemService
 {
-    Response<ProblemDTO> reportProblem(Long userId, Long postId, Problem problemRequest);
+    Response<ProblemDTO> reportProblem(Long userId, Long postId, Problem problemRequest,MultipartFile file);
 
     Response<List<ProblemDTO>> getAllProblems();
 

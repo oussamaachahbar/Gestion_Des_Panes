@@ -1,7 +1,6 @@
 package com.GestionPanne.GestionPanne.controller;
 import com.GestionPanne.GestionPanne.repo.ProblemRepository;
 import com.GestionPanne.GestionPanne.repo.UserRepository;
-import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.ProblemDTO;
 import com.GestionPanne.GestionPanne.entity.Problem;
@@ -9,7 +8,6 @@ import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.service.Implementation.LogService;
 import com.GestionPanne.GestionPanne.service.Implementation.ProblemService;
-import com.GestionPanne.GestionPanne.service.Implementation.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,47 +25,39 @@ public class ProblemController {
 
     @Autowired
     private ProblemService problemService;
-    @Autowired
-    private UserService userService;
+
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private ProblemRepository problemRepository;
 
     @Autowired
-    private LogService logService;  // Ajout du LogService pour enregistrer les actions
+    private LogService logService;
 
-    @PostMapping(value = "/add/{postId}")
+    @PostMapping(value = "/add/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Response<ProblemDTO>> reportProblem(
             @PathVariable Long postId,
-            @RequestBody Problem problemDTO
-    ) {
+            @RequestPart("problem") Problem problemDTO,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        Response<ProblemDTO> response = new Response<>();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new OurException("Utilisateur non trouvé avec l'email : " + email));
 
-        try {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new OurException("Utilisateur non trouvé avec l'email : " + email));
+        Response<ProblemDTO> response = problemService.reportProblem(user.getId(), postId, problemDTO, imageFile);
+        if(response.getStatusCode()==200){
+        logService.saveLog("Probleme assigner par : "+email+" dans le post "+user.getPost().getName());
 
-            response = problemService.reportProblem(user.getId(), postId, problemDTO);
-
-            logService.saveLog("Problème signalé par l'utilisateur :  " + user.getName() +" avec l'ID "+user.getId()+ " pour le poste  " + problemDTO.getPost().getName());
-
-        } catch (Exception e) {
-            logService.saveLog("Erreur lors du signalement du problème pour le poste ID " + postId + ": " + e.getMessage());
-            response.setMessage("Erreur lors du signalement du problème.");
-            response.setStatusCode(500);
         }
+        else{
+            logService.saveLog("Error lors de signaler le probleme par :"+email);
+        }
+
 
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
-
-
-
-
-
 
 
 
@@ -107,7 +97,7 @@ public class ProblemController {
         Problem problem =problemRepository.findById(Math.toIntExact(id)).orElseThrow(()->new OurException("NO PROBLEM FOUND "));
         Response<Void> response = problemService.deleteProblem(id);
         if (response.getStatusCode() == 200) {
-            logService.saveLog("le problem avec le nom : "+problem.getTitle() +"  ID : "+problem.getId()+" a été supprimé par "+email);
+            logService.saveLog("le problem avec le nom : "+problem.getTitle() +" avec  ID : "+problem.getId()+" a été supprimé par "+email);
         } else {
             logService.saveLog("Échec de la delete du familly avec ID: "+id );
         }
@@ -135,7 +125,7 @@ public class ProblemController {
         Problem problem =problemRepository.findById(Math.toIntExact(id)).orElseThrow(()-> new OurException("NO PROBLEM FOUND WITH ID"));
         Response<ProblemDTO> response = problemService.assignProblemToTeam(id);
         if (response.getStatusCode() == 200) {
-            logService.saveLog(" Admin à assigner le problem "+problem.getTitle()+ " Avec l'ID "+problem.getId());
+            logService.saveLog(" Admin à assignée le problem "+problem.getTitle()+ " Avec l'ID "+problem.getId());
         } else {
             logService.saveLog("ERROR DE L'ASSIGNATION DE PROBLEM AVEC L'ID "+problem.getId() );
         }

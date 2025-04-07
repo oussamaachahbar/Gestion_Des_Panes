@@ -4,7 +4,6 @@ import com.GestionPanne.GestionPanne.dto.FiliereDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Filiere;
 import com.GestionPanne.GestionPanne.entity.Project;
-import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
 import com.GestionPanne.GestionPanne.repo.FiliereRepository;
 import com.GestionPanne.GestionPanne.repo.ProjectRepository;
@@ -30,11 +29,11 @@ public class FiliereService implements IFiliereService {
         try {
             List<Filiere> filieres = filiereRepository.findAll();
             List<FiliereDTO> filiereDTOList = Utils.mapFiliereListEntityToFiliereListDTO(filieres);
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Filieres retrieved successfully");
-            response.setData(filiereDTOList); // Utilisation de setData pour une liste de données
+            response.setData(filiereDTOList);
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving filières: " + e.getMessage());
         }
         return response;
@@ -48,14 +47,14 @@ public class FiliereService implements IFiliereService {
                     .orElseThrow(() -> new OurException("Filiere not found with ID: " + filiereId));
             FiliereDTO filiereDTO = Utils.mapFiliereEntityToFiliereDTO(filiere);
 
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Filiere retrieved successfully");
-            response.setData(filiereDTO); // Utilisation de setData pour une réponse unique
+            response.setData(filiereDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving filiere: " + e.getMessage());
         }
         return response;
@@ -69,7 +68,7 @@ public class FiliereService implements IFiliereService {
                     .orElseThrow(() -> new OurException("Filiere not found with name: " + name));
             FiliereDTO filiereDTO = Utils.mapFiliereEntityToFiliereDTO(filiere);
 
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Filiere retrieved successfully");
             response.setData(filiereDTO);
         } catch (OurException e) {
@@ -92,14 +91,14 @@ public class FiliereService implements IFiliereService {
             Filiere savedFiliere = filiereRepository.save(filiere);
             FiliereDTO filiereDTO = Utils.mapFiliereEntityToFiliereDTO(savedFiliere);
 
-            response.setStatusCode(201); // 201 Created
+            response.setStatusCode(201);
             response.setMessage("Filiere created successfully");
-            response.setData(filiereDTO); // Utilisation de setData pour une réponse unique
+            response.setData(filiereDTO);
         } catch (OurException e) {
-            response.setStatusCode(400); // 400 Bad Request
+            response.setStatusCode(400);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error adding filière: " + e.getMessage());
         }
         return response;
@@ -109,7 +108,6 @@ public class FiliereService implements IFiliereService {
     public Response<FiliereDTO> updateFiliere(long filiereId, Filiere filiereRequest) {
         Response<FiliereDTO> response = new Response<>();
         try {
-            // Vérifier si la filière existe
             if (!filiereRepository.existsById(filiereId)) {
                 throw new OurException("Filiere not found with ID: " + filiereId);
             }
@@ -121,15 +119,14 @@ public class FiliereService implements IFiliereService {
             Filiere updatedFiliere = filiereRepository.save(existingFiliere);
             FiliereDTO filiereDTO = Utils.mapFiliereEntityToFiliereDTO(updatedFiliere);
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Filiere updated successfully");
-            response.setData(filiereDTO); // Utilisation de setData pour une réponse unique
+            response.setData(filiereDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error updating Filiere: " + e.getMessage());
         }
         return response;
@@ -143,20 +140,19 @@ public class FiliereService implements IFiliereService {
                     .orElseThrow(() -> new OurException("Filière not found with ID: " + id));
             List<Project> projects = projectRepository.findByFiliereId(id);
 
-            // Mettre leur family à null
             for (Project project : projects) {
                 project.setFiliere(null);
-                projectRepository.save(project); // Sauvegarder la mise à jour
+                projectRepository.save(project);
             }
             filiereRepository.delete(filiere);
 
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Filière deleted successfully");
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error deleting filière: " + e.getMessage());
         }
         return response;

@@ -15,9 +15,16 @@ public class Response<T> {
     private String token;
     private boolean supervisor;
     private String role;
+    private boolean status;
     private String expirationTime;
-    private T data; // Donnée unique (UserDTO, PostDTO, etc.)
-    private List<T> dataList = new ArrayList<>(); // Liste de données (ex: List<UserDTO>, List<ProjectDTO>, etc.)
+    private T data;
+    private List<T> dataList = new ArrayList<>();
 
 
+    public Response(int i, String s, Object o) {
+    }
+
+    public Response() {
+
+    }
 }

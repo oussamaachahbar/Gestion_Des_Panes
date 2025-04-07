@@ -41,5 +41,6 @@ public class Problem {
 
     @Enumerated(EnumType.STRING)
     private Etat etat;
+    private String imageUrl;
 
 }

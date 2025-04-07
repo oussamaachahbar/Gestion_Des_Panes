@@ -33,72 +33,46 @@ public class PostService implements IPostService {
     private UserService userService;
 
     @Override
-    public Response<PostDTO> createPost(Long project_id, Post postRequest) {
+    public Response<PostDTO> createPost(Post postRequest) {
         Response<PostDTO> response = new Response<>();
         try {
-
-
-            if (project_id == null) {
-                throw new OurException("Project ID cannot be null.");
-            }
-
-            // Vérifier si le postRequest contient déjà un projet assigné
+            postRequest.setProject(null);
             if (postRequest.getProject() != null) {
                 throw new OurException("This post is already assigned to a project and cannot be reassigned.");
             }
-
-
-            // Vérifier si le projet existe
-            Project project = projectRepository.findById(project_id)
-                    .orElseThrow(() -> new OurException("Project not found with ID: " + project_id));
-
-
-
-
-            postRequest.setProject(project);
             if (postRequest.getUsers() == null) {
                 postRequest.setUsers(new ArrayList<>());
             }
-            
+
             if (postRequest.getProblems() == null) {
                 postRequest.setProblems(new ArrayList<>());
             }
-
-            // Sauvegarde du post
             Post savedPost = postRepository.save(postRequest);
             PostDTO postDTO = Utils.mapPostEntityToPostDTO(savedPost);
 
-            // Construire la réponse
-            response.setStatusCode(201); // 201 Created
+            response.setStatusCode(201);
             response.setMessage("Post created successfully");
-            response.setData(postDTO); // Utilisation de setData pour une réponse unique
+            response.setData(postDTO);
         } catch (OurException e) {
-            response.setStatusCode(400); // 400 Bad Request
+            response.setStatusCode(400);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error adding post: " + e.getMessage());
         }
         return response;
     }
-
-
-
-
     @Override
     public Response<List<PostDTO>> getAllPosts() {
         Response<List<PostDTO>> response = new Response<>();
         try {
-            // Récupérer tous les posts
             List<Post> posts = postRepository.findAll();
             List<PostDTO> postDTOList = Utils.mapPostListEntityToPostListDTO(posts);
-
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Posts retrieved successfully");
-            response.setData(postDTOList); // Utilisation de setData pour une liste de données
+            response.setData(postDTOList);
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving posts: " + e.getMessage());
         }
         return response;
@@ -108,20 +82,17 @@ public class PostService implements IPostService {
     public Response<PostDTO> getPostById(Long postId) {
         Response<PostDTO> response = new Response<>();
         try {
-            // Récupérer le post par son ID
             Post post = postRepository.findById(Math.toIntExact(postId))
                     .orElseThrow(() -> new OurException("Post not found with ID: " + postId));
             PostDTO postDTO = Utils.mapPostEntityToPostDTOWithProblems(post);
-
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Post retrieved successfully");
-            response.setData(postDTO); // Utilisation de setData pour une réponse unique
+            response.setData(postDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving post: " + e.getMessage());
         }
         return response;
@@ -131,38 +102,34 @@ public class PostService implements IPostService {
     public Response<PostDTO> getPostByUserId() {
         Response<PostDTO> response = new Response<>();
         try {
-            // Récupérer l'authentification actuelle
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String currentUserName = authentication.getName();
 
-            // Trouver l'utilisateur par email
             User user = userRepository.findByEmail(currentUserName)
                     .orElseThrow(() -> new OurException("User not found with EMAIL: " + currentUserName));
 
             if (!user.getUsername().equals(currentUserName)) {
                 throw new OurException("You do not have permission to view this user's post.");
             }
-            Post post = user.getPost();  // L'utilisateur a un seul poste associé
+            Post post = user.getPost();
 
             if (post == null) {
                 throw new OurException("This user does not have an associated post.");
             }
 
-            // Mapper l'entité Post vers PostDTO
             PostDTO postDTO = Utils.mapPostEntityToPostDTOWithProblems(post);
             if (postDTO == null) {
                 throw new OurException("Error mapping post to DTO.");
             }
 
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Post retrieved successfully");
-            response.setData(postDTO); // Utilisation de setData pour la réponse unique
+            response.setData(postDTO);
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error retrieving post: " + e.getMessage());
         }
         return response;
@@ -173,7 +140,6 @@ public class PostService implements IPostService {
     public Response<PostDTO> updatePost(Long postId, Post postRequest) {
         Response<PostDTO> response = new Response<>();
         try {
-            // Vérifier si le post existe
             Optional<Post> optionalPost = Optional.ofNullable(postRepository.findById(postId));
             if (!optionalPost.isPresent()) {
                 throw new OurException("Post not found");
@@ -194,7 +160,6 @@ public class PostService implements IPostService {
                 existingPost.setProject(postRequest.getProject());
             }
 
-            // Vérification des relations (Users & Problems)
             if (postRequest.getUsers() != null) {
                 existingPost.setUsers(postRequest.getUsers());
             }
@@ -202,11 +167,9 @@ public class PostService implements IPostService {
                 existingPost.setProblems(postRequest.getProblems());
             }
 
-            // Sauvegarde de la mise à jour
             Post updatedPost = postRepository.save(existingPost);
             PostDTO postDTO = Utils.mapPostEntityToPostDTO(updatedPost);
 
-            // Réponse réussie
             response.setStatusCode(200);
             response.setMessage("Post updated successfully");
             response.setData(postDTO);
@@ -219,33 +182,27 @@ public class PostService implements IPostService {
         }
         return response;
     }
-
-
-
     @Override
     public Response<Void> deletePost(Long postId) {
         Response<Void> response = new Response<>();
         try {
-            // Vérifier si le post existe
             Post post = postRepository.findById(Math.toIntExact(postId))
                     .orElseThrow(() -> new OurException("Post not found with ID: " + postId));
             List<User> users = userRepository.findByPost(post);
             for (User user : users) {
-                user.setPost(null); // Supprimer l'association avec le projet
-                userRepository.save(user); // Mettre à jour la base de données
+                user.setPost(null);
+                userRepository.save(user);
             }
 
 
             postRepository.delete(post);
-
-            // Construire la réponse
-            response.setStatusCode(200); // 200 OK
+            response.setStatusCode(200);
             response.setMessage("Post deleted successfully");
         } catch (OurException e) {
-            response.setStatusCode(404); // 404 Not Found
+            response.setStatusCode(404);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error deleting post: " + e.getMessage());
         }
         return response;

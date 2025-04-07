@@ -1,10 +1,7 @@
 package com.GestionPanne.GestionPanne.controller;
 
-import com.GestionPanne.GestionPanne.dto.PostDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.dto.logDTO;
-import com.GestionPanne.GestionPanne.entity.Log;
-import com.GestionPanne.GestionPanne.repo.LogRepository;
 import com.GestionPanne.GestionPanne.service.Implementation.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

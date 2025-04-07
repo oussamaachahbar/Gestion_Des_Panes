@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "gestionpannedrive",
+  "private_key_id": "7e32a1f0599aa53d38d6c656e64f762c707a5091",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDRKoflJnPa5Wv3\n/htqEnfYbk4RroBXADvfPxuv2/9szgx8yVJ0Qb/s+VDAHlXotgV4W7te+lE1mh0i\ne5cvzQcm4vKstt4BaRYZMgSuF5gSCfKYsw/0LjMztGdj3gFrgN+bp9nd62cu4UPn\n/SLRp7/HkDoJgzFpWXd3UUL9UPPeVlwYPd58lcAZZvAubQKHP1TeU65r8S7/wbx8\na+1zoCLYsyZRVkKflRVaByeQTZGyXJ+hFQhU/Qho9vqMowqkbNXCeojYluz9Y1Ri\nL+cOJ14Ex2gWqMt7DUMlzqc5lnVOmYddxEOpWBJpWhe33TqDpqWjNC/VI0/pLq4Q\nxGJA/23hAgMBAAECggEADUM4na+L/g+5Al8C5v1nyvnnilh5u8qAgV3TiBmXfxMr\nmIf9afC3VjPSynPB98D+5MxQO6v8lT0B5utWQUorT2xpfckUl5tNsuhIgq9tTYuC\n7erAsrdxOLCSM7NifKoNw6Vne5pPDxpqf12+JPQRhXpgK7U9X1Q0boThDgXhiLHs\nsvMUr+0QCFMhzvXD7ZoeyV6RmZAWhwmL3Y1n6iUA4WlIKFnz2orYcgFKdcnCGdTY\nFErJkuijMA8SSTigjn1RyelYnqLvmUKzJbsPPIdNt0dfh8xu6Vyv05jqsf+th3bK\nsISCHv5zbr6YMuP0g2wx/2k6lJ/dmDJfGXBXojyooQKBgQD6E94ePpACi4USFHcv\nviN0lzqEubqRL/PXy7l56ZJJRq2o8peQCniFPjs9kL3yaPqewNeUY24TLM+FL+KX\nR7CynLBk+wh9GOXp5pVHraSzdrVJkfGEIRtSVNePB7h2nfY+DTPrgt5MerfEXeVR\nUQD2Pv/2UUlPfHJ5yP4SUQR6CQKBgQDWHqGhEdYPhtljgGetLw/2XSGLBitmFQs6\nKUW4aSGXwCdWZYulJyJaxIyWDnS9CVEhDmP234aipCiLzKHI9JF9St4ZJbFKhFY1\nwM348gTqR8YcOnvoxPJz5PjNKjxnKdteTZBV9pLCMWmPWxFcGVCNQXHccFN5Mpzj\n/WPc4pArGQKBgQCS1D1zBoqpY9+iyO9d0cahevV53k7DViNWjZ/+C3y/l0b5Tk5c\n3Tj8Cpjfwe80uByGP3WUA3kquwGxEnd5GTeO916+O4I1aPv9BEybxEFSuZ0hcBYc\n3Q9cnMHfkcnlo0NkFX5phfIdd2QUYIj24Jeu/ThuGDXx/IB+Ltu2R2lYeQKBgFZ7\nTMDnmVPwHUGJDVbvmTziZLfoKAM1ILG/Fb/kBoNqQvksTnjIE6IhnL7G2/O2HaSC\nUXHW2mQ6dX3xiq7FyTWX1ZjGlpMIXGGdnBOefMm7b5LbNEzRrzOMGcmT842fZFD0\ndwWhb6krl/0kxSAzwUssUba9T5m2DZQwNfNzNtORAoGBAOnYGITKhiQMXA2weQNv\nmboywFVK9njtdE89e+UpNAf2g1z5zTzALYeBisGGO1bGQy0+etNuFLOTiTjIwYfY\nqjVGbXyXlV7gni3fd7lxixabYaVTqUdYRAYs9vCuTz/q5Fw59HQBcVRIOChlo+Gi\nG4JTMLjaNjHDriAK0aI8w+PS\n-----END PRIVATE KEY-----\n",
+  "client_email": "gestionpanne@gestionpannedrive.iam.gserviceaccount.com",
+  "client_id": "115946142826561672842",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gestionpanne%40gestionpannedrive.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

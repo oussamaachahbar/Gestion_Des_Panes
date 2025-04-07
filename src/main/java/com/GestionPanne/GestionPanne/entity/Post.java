@@ -21,7 +21,7 @@ public class Post {
     private String position;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = true) // nullable = true permet d'avoir un projet null
+    @JoinColumn(name = "project_id", nullable = true)
     private Project project;
 
 
