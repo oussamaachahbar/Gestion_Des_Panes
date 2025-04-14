@@ -26,5 +26,7 @@ public interface IProblemService
 
     Response<ProblemDTO> validateProblem(Long id);
 
-    Response<ProblemDTO> assignProblemToTeam(Long id);
+    Response<ProblemDTO> assignProblemToTeam(Long id,Long technicienId);
+
+    Response<List<ProblemDTO>> getProblemsByTechnicien(Long technicienId);
 }

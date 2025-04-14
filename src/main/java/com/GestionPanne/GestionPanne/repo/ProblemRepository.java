@@ -15,4 +15,6 @@ public interface ProblemRepository extends JpaRepository<Problem, Integer> {
     List<Problem> findByUserId(Long userId);
     @Query("SELECT p FROM Problem p ORDER BY CASE WHEN p.priority = 'CRITICAL' THEN 1 WHEN p.priority = 'HIGH' THEN 2 WHEN p.priority = 'MEDIUM' THEN 3 WHEN p.priority = 'LOW' THEN 4 END ASC")
     List<Problem> findAllOrderedByPriority();
+
+    List<Problem> findByTechnicienId(Long technicienId);
 }

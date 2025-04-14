@@ -1,6 +1,5 @@
 package com.GestionPanne.GestionPanne.controller;
 
-
 import com.GestionPanne.GestionPanne.dto.FamilyDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Family;
@@ -26,6 +25,7 @@ public class FamilyController {
 
     @Autowired
     private LogService logService;
+
     @Autowired
     private FamilyRepository familyRepository;
 
@@ -35,15 +35,20 @@ public class FamilyController {
         Response<FamilyDTO> response = new Response<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+
         try {
+            logService.saveLog("Attempting to create new family: " + familyDTO.getName() + " by " + email);
             response = familyService.createFamily(familyDTO);
 
-            logService.saveLog("Famille crée avec succès : " + familyDTO.getName() +" par "+email);
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Family created successfully: " + familyDTO.getName() + " by " + email);
+            } else {
+                logService.saveLog("Failed to create family: " + familyDTO.getName() + ". Reason: " + response.getMessage());
+            }
 
         } catch (Exception e) {
-            logService.saveLog("Erreur lors de la création de la famille : " + e.getMessage());
-
-            response.setMessage("Erreur lors de la création de la famille.");
+            logService.saveLog("Error while creating family: " + e.getMessage() + " by " + email);
+            response.setMessage("Error while creating family: " + e.getMessage());
             response.setStatusCode(500);
         }
 
@@ -51,18 +56,22 @@ public class FamilyController {
     }
 
     @GetMapping("/all")
-
     public ResponseEntity<Response<List<FamilyDTO>>> getAllFamilies() {
-        Response<List<FamilyDTO>> response= familyService.getAllFamilies();
-        return ResponseEntity.status(response.getStatusCode()).body(response);
 
+        Response<List<FamilyDTO>> response = familyService.getAllFamilies();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @GetMapping("/getFamilyById/{id}")
     public ResponseEntity<Response<FamilyDTO>> getFamilyById(@PathVariable Long id) {
-        Response<FamilyDTO> response= familyService.getFamilyById(id);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+        logService.saveLog("Fetching family with ID: " + id);
+        Response<FamilyDTO> response = familyService.getFamilyById(id);
 
+        if (response.getStatusCode() != 200) {
+            logService.saveLog("Family not found with ID: " + id);
+        }
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping("/updateFamily/{id}")
@@ -70,15 +79,30 @@ public class FamilyController {
     public ResponseEntity<Response<FamilyDTO>> updateFamily(@PathVariable Long id, @RequestBody Family familyDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        Family famille=familyRepository.findById(id).orElseThrow(()->new OurException("NO FAMILY FOUND"));
-        Response<FamilyDTO> response= familyService.updateFamily(id,familyDTO);
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("la famille  avec le nom :  "+famille.getName()+" avec ID : "+id+" a été modifié par "+email);
-        } else {
-            logService.saveLog("Échec de la modification du familly avec ID: "+id );
-        }
-        return ResponseEntity.status(response.getStatusCode()).body(response);
 
+        try {
+            Family famille = familyRepository.findById(id)
+                    .orElseThrow(() -> new OurException("No family found with ID: " + id));
+
+            logService.saveLog("Attempting to update family: " + famille.getName() + " (ID: " + id + ") by " + email);
+
+            Response<FamilyDTO> response = familyService.updateFamily(id, familyDTO);
+
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Family updated successfully: " + famille.getName() + " (ID: " + id + ") by " + email);
+            } else {
+                logService.saveLog("Failed to update family with ID: " + id + ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error while updating family with ID: " + id + ". Error: " + e.getMessage());
+            Response<FamilyDTO> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
+        }
     }
 
     @DeleteMapping("/deleteFamily/{id}")
@@ -86,16 +110,29 @@ public class FamilyController {
     public ResponseEntity<Response<Void>> deleteFamily(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        Family family=familyRepository.findById(id).orElseThrow(()->new OurException("no family found")) ;
-        Response<Void> response= familyService.deleteFamily(id);
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("la famille  avec le nom : "+family.getName()+" avec ID :  "+id+" à été supprimé par "+email);
-        } else {
-            logService.saveLog("Échec de la delete du familly avec ID: "+id );
-        }
-        return ResponseEntity.status(response.getStatusCode()).body(response);
 
+        try {
+            Family family = familyRepository.findById(id)
+                    .orElseThrow(() -> new OurException("No family found with ID: " + id));
+
+            logService.saveLog("Attempting to delete family: " + family.getName() + " (ID: " + id + ") by " + email);
+
+            Response<Void> response = familyService.deleteFamily(id);
+
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Family deleted successfully: " + family.getName() + " (ID: " + id + ") by " + email);
+            } else {
+                logService.saveLog("Failed to delete family with ID: " + id + ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error while deleting family with ID: " + id + ". Error: " + e.getMessage());
+            Response<Void> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
+        }
     }
 }
-
-

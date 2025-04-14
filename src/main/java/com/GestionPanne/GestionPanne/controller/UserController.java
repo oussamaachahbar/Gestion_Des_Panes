@@ -1,9 +1,6 @@
 package com.GestionPanne.GestionPanne.controller;
 
-import com.GestionPanne.GestionPanne.dto.PasswordResetRequest;
-import com.GestionPanne.GestionPanne.dto.PostDTO;
-import com.GestionPanne.GestionPanne.dto.Response;
-import com.GestionPanne.GestionPanne.dto.UserDTO;
+import com.GestionPanne.GestionPanne.dto.*;
 import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.User;
 import com.GestionPanne.GestionPanne.exception.OurException;
@@ -22,7 +19,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -33,37 +29,54 @@ public class UserController {
 
     @Autowired
     private LogService logService;
+
     @Autowired
     private PostRepository postRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @PostMapping("/add/{postId}")
-    public ResponseEntity<Response<UserDTO>> createUser(@PathVariable Long postId, @RequestBody User user) {
-        Response<UserDTO> response = userService.registre(postId, user);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
 
-        if (response.getMessage().equals("The user does not have a post assigned.")) {
-            logService.saveLog("Échec de l'ajout de l'utilisateur " + user.getEmail() + " : aucun poste attribué.");
+    @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response<UserDTO>> createUser(
+            @RequestParam(required = false) Long postId,
+            @RequestBody User user) {
 
-            return ResponseEntity.status(200).body(response);
+        // Validation des rôles
+        if (user.getIsTechnicien() == null) user.setIsTechnicien(false);
+        if (user.getIsSupervisor() == null) user.setIsSupervisor(false);
+
+        // Un technicien ne peut pas être superviseur
+        if (user.getIsTechnicien()) {
+            user.setIsSupervisor(false);
+            user.setStartTime(null);
+            user.setEndTime(null);
         }
 
-        Post post = postRepository.findById(postId);
-        logService.saveLog("Utilisateur créé avec succès : " + user.getEmail() + " | Poste : " + post.getName() + " | Ajouté par : " + email);
+        // Force postId à null pour les techniciens
+        if (user.getIsTechnicien() || "ADMIN".equals(user.getRole())) {
+            postId = null;
+        }
 
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+        try {
+            Response<UserDTO> response = userService.registre(postId, user);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            Response<UserDTO> errorResponse = new Response<>();
+            errorResponse.setMessage("Error creating user: " + e.getMessage());
+            errorResponse.setStatusCode(500);
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
-
-
-
     @GetMapping("/all")
     public ResponseEntity<Response<List<UserDTO>>> getAll() {
         Response<List<UserDTO>> response = userService.getAllUsers();
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
     @GetMapping("/allUsers")
     public ResponseEntity<Response<List<UserDTO>>> getAllUsers() {
         Response<List<UserDTO>> response = userService.getAllUserse();
@@ -72,11 +85,14 @@ public class UserController {
 
     @GetMapping("/getUserById/{id}")
     public ResponseEntity<Response<UserDTO>> getUserById(@PathVariable Long id) {
+        logService.saveLog("Fetching user with ID: " + id);
         Response<UserDTO> response = userService.getUserById(id);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
     @GetMapping("/email/{email}")
     public ResponseEntity<Response<UserDTO>> getUserByEmail(@PathVariable String email) {
+        logService.saveLog("Fetching user with email: " + email);
         Response<UserDTO> response = userService.getUserByEmail(email);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
@@ -86,28 +102,37 @@ public class UserController {
             @RequestBody @Valid PasswordResetRequest request,
             BindingResult bindingResult) {
 
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest()
-                    .body(new Response<>(400, "Données invalides", null));
-        }
-
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            return ResponseEntity.badRequest()
-                    .body(new Response<>(400, "Les mots de passe ne correspondent pas", null));
-        }
-
         try {
+            logService.saveLog("Attempting password reset for email: " + request.getEmail());
+
+            if (bindingResult.hasErrors()) {
+                logService.saveLog("Invalid password reset data for email: " + request.getEmail());
+                return ResponseEntity.badRequest()
+                        .body(new Response<>(400, "Invalid data", null));
+            }
+
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                logService.saveLog("Password mismatch for email: " + request.getEmail());
+                return ResponseEntity.badRequest()
+                        .body(new Response<>(400, "Passwords do not match", null));
+            }
+
             Response<Void> response = userService.resetPassword(
                     request.getEmail(),
                     request.getNewPassword()
             );
 
-            if (response.getStatusCode() < 100 || response.getStatusCode() >= 600) {
-                throw new IllegalArgumentException("Code d'état HTTP invalide");
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Password reset successfully for email: " + request.getEmail());
+            } else {
+                logService.saveLog("Failed to reset password for email: " + request.getEmail() +
+                        ". Reason: " + response.getMessage());
             }
 
             return ResponseEntity.status(response.getStatusCode()).body(response);
+
         } catch (Exception e) {
+            logService.saveLog("Error resetting password: " + e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new Response<>(500, e.getMessage(), null));
         }
@@ -115,82 +140,163 @@ public class UserController {
 
     @PutMapping("/updateUser/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-
     public ResponseEntity<Response<UserDTO>> updateUser(@PathVariable Long id, @RequestBody User user) {
-        Response<UserDTO> response = userService.updateUser(id, user);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String adminEmail = authentication.getName();
+
+        try {
+            User existingUser = userRepository.findById(id)
+                    .orElseThrow(() -> new OurException("User not found with ID: " + id));
+
+            logService.saveLog("Admin " + adminEmail + " attempting to update user: " + existingUser.getEmail());
+
+            Response<UserDTO> response = userService.updateUser(id, user);
+
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("User updated successfully: " + existingUser.getEmail() +
+                        " (ID: " + id + ") by admin: " + adminEmail);
+            } else {
+                logService.saveLog("Failed to update user with ID: " + id +
+                        ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error updating user: " + e.getMessage());
+            Response<UserDTO> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
+        }
     }
+
     @PutMapping("/updateUserProfil/{id}")
     public ResponseEntity<Response<UserDTO>> updateUserProfil(@PathVariable Long id, @RequestBody User user) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String userEmail = authentication.getName();
 
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new OurException("Utilisateur introuvable avec l'ID : " + id));
+        try {
+            User existingUser = userRepository.findById(id)
+                    .orElseThrow(() -> new OurException("User not found with ID: " + id));
 
-        Response<UserDTO> response = userService.updateUser(id, user);
+            logService.saveLog("User " + userEmail + " attempting to update their profile");
 
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("Profil mis à jour avec succès : " + existingUser.getName() + " (" + existingUser.getEmail() + ") a modifié ses informations personnelles.");
-        } else {
-            logService.saveLog("Échec de la mise à jour du profil de l'utilisateur avec l'ID : " + id);
+            Response<UserDTO> response = userService.updateUser(id, user);
+
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Profile updated successfully: " + existingUser.getName() +
+                        " (" + existingUser.getEmail() + ")");
+            } else {
+                logService.saveLog("Failed to update profile for user ID: " + id);
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error updating profile: " + e.getMessage());
+            Response<UserDTO> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
         }
-
-        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping("/updateUserNew/{postId}/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response<UserDTO>> updateUser(@PathVariable Long postId, @PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<Response<UserDTO>> updateUserWithPost(
+            @PathVariable Long postId,
+            @PathVariable Long id,
+            @RequestBody User user) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String adminEmail = authentication.getName();
 
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new OurException("Utilisateur introuvable avec l'ID : " + id));
+        try {
+            User existingUser = userRepository.findById(id)
+                    .orElseThrow(() -> new OurException("User not found with ID: " + id));
 
-        Response<UserDTO> response = userService.updateUsere(postId, id, user);
+            logService.saveLog("Admin " + adminEmail + " attempting to update user with post assignment: " + existingUser.getEmail());
 
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("Mise à jour réussie : L'utilisateur '" + existingUser.getName() + "' (ID: " + id + ") a été modifié par " + email + ".");
-        } else {
-            logService.saveLog("Échec de la mise à jour de l'utilisateur avec l'ID : " + id + ".");
+            Response<UserDTO> response = userService.updateUsere(postId, id, user);
+
+            if (response.getStatusCode() == 200) {
+                String postInfo = (postId != null) ?
+                        " to post ID: " + postId :
+                        " (post unassigned)";
+
+                logService.saveLog("User updated successfully: " + existingUser.getName() +
+                        " (ID: " + id + ")" + postInfo + " by admin: " + adminEmail);
+            } else {
+                logService.saveLog("Failed to update user with ID: " + id +
+                        ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error updating user with post assignment: " + e.getMessage());
+            Response<UserDTO> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
         }
-
-        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @DeleteMapping("/deleteUser/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<Void>> deleteUser(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String adminEmail = authentication.getName();
 
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new OurException("Utilisateur introuvable avec l'ID : " + id));
+        try {
+            User existingUser = userRepository.findById(id)
+                    .orElseThrow(() -> new OurException("User not found with ID: " + id));
 
-        Response<Void> response = userService.deleteUser(id);
+            logService.saveLog("Admin " + adminEmail + " attempting to delete user: " + existingUser.getEmail());
 
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("Suppression réussie : L'utilisateur '" + existingUser.getName() + "' (ID: " + id + ") a été supprimé par " + email + ".");
-        } else {
-            logService.saveLog("Échec de la suppression de l'utilisateur avec l'ID : " + id + ".");
+            Response<Void> response = userService.deleteUser(id);
+
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("User deleted successfully: " + existingUser.getName() +
+                        " (ID: " + id + ") by admin: " + adminEmail);
+            } else {
+                logService.saveLog("Failed to delete user with ID: " + id +
+                        ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error deleting user: " + e.getMessage());
+            Response<Void> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
         }
-
-        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @GetMapping("/get-logged-in-profile-info")
     public ResponseEntity<Response<UserDTO>> getLoggedInUserProfile() {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        logService.saveLog("Fetching profile info for logged in user: " + email);
         Response<UserDTO> response = userService.getMyInfo(email);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
     @GetMapping("/getpost")
     public ResponseEntity<Response<PostDTO>> getUserPost() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        logService.saveLog("Fetching post information for user: " + email);
         Response<PostDTO> response = userService.getUserPost();
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+    @GetMapping("/techniciens")
+    public ResponseEntity<List<User>> getAllTechniciens() {
+        List<User> techniciens = userRepository.findByIsTechnicienTrue();
+        return ResponseEntity.ok(techniciens);
+    }
 }

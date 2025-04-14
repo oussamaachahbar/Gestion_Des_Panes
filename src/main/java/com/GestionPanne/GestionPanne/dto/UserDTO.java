@@ -22,6 +22,7 @@ public class UserDTO {
     private LocalTime startTime;
     private LocalTime endTime;
     private boolean supervisor;
+    private boolean technicien;
     private boolean status;
     private Long postId;
     private String postName;

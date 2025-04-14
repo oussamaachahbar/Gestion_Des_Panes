@@ -1,4 +1,5 @@
 package com.GestionPanne.GestionPanne.controller;
+
 import com.GestionPanne.GestionPanne.dto.FiliereDTO;
 import com.GestionPanne.GestionPanne.dto.Response;
 import com.GestionPanne.GestionPanne.entity.Filiere;
@@ -24,6 +25,7 @@ public class FiliereController {
 
     @Autowired
     private LogService logService;
+
     @Autowired
     private FiliereRepository filiereRepository;
 
@@ -33,15 +35,20 @@ public class FiliereController {
         Response<FiliereDTO> response = new Response<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+
         try {
+            logService.saveLog("Attempting to create new program: " + filiereDTO.getName() + " by " + email);
             response = filiereService.createFiliere(filiereDTO);
 
-            logService.saveLog("Filière créée avec succès : " + filiereDTO.getName()+" par "+email);
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Program created successfully: " + filiereDTO.getName() + " by " + email);
+            } else {
+                logService.saveLog("Failed to create program: " + filiereDTO.getName() + ". Reason: " + response.getMessage());
+            }
 
         } catch (Exception e) {
-            logService.saveLog("Erreur lors de la création de la filière : " + e.getMessage());
-
-            response.setMessage("Erreur lors de la création de la filière.");
+            logService.saveLog("Error while creating program: " + e.getMessage() + " by " + email);
+            response.setMessage("Error while creating program: " + e.getMessage());
             response.setStatusCode(500);
         }
 
@@ -50,16 +57,20 @@ public class FiliereController {
 
     @GetMapping("/all")
     public ResponseEntity<Response<List<FiliereDTO>>> getAllFilieres() {
-        Response<List<FiliereDTO>> response= filiereService.getAllFilieres();
+        Response<List<FiliereDTO>> response = filiereService.getAllFilieres();
         return ResponseEntity.status(response.getStatusCode()).body(response);
-
     }
 
     @GetMapping("/getFiliereById/{id}")
     public ResponseEntity<Response<FiliereDTO>> getFiliereById(@PathVariable Long id) {
-        Response<FiliereDTO> response= filiereService.getFiliereById(id);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+        logService.saveLog("Fetching program with ID: " + id);
+        Response<FiliereDTO> response = filiereService.getFiliereById(id);
 
+        if (response.getStatusCode() != 200) {
+            logService.saveLog("Program not found with ID: " + id);
+        }
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping("/updateFiliere/{id}")
@@ -67,15 +78,30 @@ public class FiliereController {
     public ResponseEntity<Response<FiliereDTO>> updateFiliere(@PathVariable Long id, @RequestBody Filiere filiereDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        Filiere filiere=filiereRepository.findById(id).orElseThrow(()->new OurException("NO FILIERE FOUND"));
-        Response<FiliereDTO> response= filiereService.updateFiliere(id, filiereDTO);
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("la filliere  avec le nom : "+filiere.getName()+" avec ID : "+id+" a été modifiée par "+email);
-        } else {
-            logService.saveLog("Échec de la modification du filiere avec ID: "+id );
-        }
-        return ResponseEntity.status(response.getStatusCode()).body(response);
 
+        try {
+            Filiere filiere = filiereRepository.findById(id)
+                    .orElseThrow(() -> new OurException("No program found with ID: " + id));
+
+            logService.saveLog("Attempting to update program: " + filiere.getName() + " (ID: " + id + ") by " + email);
+
+            Response<FiliereDTO> response = filiereService.updateFiliere(id, filiereDTO);
+
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Program updated successfully: " + filiere.getName() + " (ID: " + id + ") by " + email);
+            } else {
+                logService.saveLog("Failed to update program with ID: " + id + ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error while updating program with ID: " + id + ". Error: " + e.getMessage());
+            Response<FiliereDTO> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
+        }
     }
 
     @DeleteMapping("/deleteFiliere/{id}")
@@ -83,15 +109,29 @@ public class FiliereController {
     public ResponseEntity<Response<Void>> deleteFiliere(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        Filiere filliere=filiereRepository.findById(id).orElseThrow(()->new OurException("no filliere found")) ;
-        Response<Void> response= filiereService.deleteFiliere(id);
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("la filliere  avec le nom :  "+filliere.getName()+" avec ID : "+id+" a été supprimé par "+email);
-        } else {
-            logService.saveLog("Échec de la delete du filiere avec ID: "+id );
-        }
-        return ResponseEntity.status(response.getStatusCode()).body(response);
 
+        try {
+            Filiere filiere = filiereRepository.findById(id)
+                    .orElseThrow(() -> new OurException("No program found with ID: " + id));
+
+            logService.saveLog("Attempting to delete program: " + filiere.getName() + " (ID: " + id + ") by " + email);
+
+            Response<Void> response = filiereService.deleteFiliere(id);
+
+            if (response.getStatusCode() == 200) {
+                logService.saveLog("Program deleted successfully: " + filiere.getName() + " (ID: " + id + ") by " + email);
+            } else {
+                logService.saveLog("Failed to delete program with ID: " + id + ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error while deleting program with ID: " + id + ". Error: " + e.getMessage());
+            Response<Void> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
+        }
     }
 }
-

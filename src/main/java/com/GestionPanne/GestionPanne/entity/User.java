@@ -32,9 +32,11 @@ public class User implements UserDetails {
     private String phone;
     private String role;
     private Boolean isSupervisor;
-    private boolean status=false;
+    @Column(nullable = false)
+    private Boolean isTechnicien = false;    private boolean status=false;
     private LocalTime startTime;
     private LocalTime endTime;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = true)
     private Post post;
@@ -93,5 +95,9 @@ public class User implements UserDetails {
 
     public boolean isSupervisor() {
         return !"ADMIN".equals(this.role) && Boolean.TRUE.equals(this.isSupervisor);
+    }
+
+    public boolean isTechnicien() {
+        return !"ADMIN".equals(this.role) && Boolean.TRUE.equals(this.isTechnicien);
     }
 }

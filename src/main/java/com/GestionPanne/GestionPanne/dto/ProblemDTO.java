@@ -5,7 +5,6 @@ import com.GestionPanne.GestionPanne.entity.Priority;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
 public class ProblemDTO {
@@ -17,9 +16,12 @@ public class ProblemDTO {
     private String title;
     private LocalDateTime failureDate;
     private LocalDateTime solutionDate;
+    private LocalDateTime assignmentDate; // Ajouté
     private String failureDetails;
     private String priority;
     private String etat;
     private String imageUrl;
-
+    private String technicien;
+    private String technicienemail;
+    private Long technicienId;
 }

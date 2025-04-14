@@ -33,24 +33,19 @@ public class Utils {
         userDTO.setPhone(user.getPhone());
         userDTO.setCin(user.getCin());
         userDTO.setRole(user.getRole());
-        userDTO.setSupervisor(user.getIsSupervisor());
+        userDTO.setSupervisor(user.isSupervisor());
+        userDTO.setTechnicien(user.isTechnicien()); // Nouveau champ mappé
         userDTO.setStatus(user.isStatus());
         userDTO.setEndTime(user.getEndTime());
         userDTO.setStartTime(user.getStartTime());
-        if(user.getPost() != null) {
+
+        if (user.getPost() != null) {
             userDTO.setPostName(user.getPost().getName());
-
-        }
-        else{
-            userDTO.setPostName("Non Post Assignée");
-        }
-
-        if ("ADMIN".equals(user.getRole())) {
-            userDTO.setPostId(null);
+            userDTO.setPostId(user.getPost().getId());
         } else {
-            userDTO.setPostId(user.getPost() != null ? user.getPost().getId() : null);
+            userDTO.setPostName("Not assigned");
+            userDTO.setPostId(null);
         }
-
         return userDTO;
     }
 
@@ -132,12 +127,19 @@ public class Utils {
         problemDTO.setPostname(problem.getPost().getName());
         problemDTO.setUsername(problem.getUser().getName());
         problemDTO.setFailureDate(problem.getFailureDate());
+
+        // Ajout des nouveaux champs
+        problemDTO.setAssignmentDate(problem.getAssignmentDate());
         problemDTO.setSolutionDate(problem.getSolutionDate());
+
+        if(problem.getTechnicien() != null) {
+            problemDTO.setTechnicien(problem.getTechnicien().getName());
+            problemDTO.setTechnicienemail(problem.getTechnicien().getUsername());
+            problemDTO.setTechnicienId(problem.getTechnicien().getId());
+        }
+
         problemDTO.setFailureDetails(problem.getFailureDetails());
         problemDTO.setImageUrl(problem.getImageUrl());
-
-
-
 
         if (problem.getPriority() != null) {
             problemDTO.setPriority(problem.getPriority().name());

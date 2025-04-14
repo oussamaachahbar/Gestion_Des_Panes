@@ -38,35 +38,32 @@ public class UserService implements IUserService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Override
     public Response<UserDTO> registre(Long postId, User user) {
         Response<UserDTO> response = new Response<>();
         try {
+            // Validation des doublons
             if (userRepository.existsByEmail(user.getEmail())) {
                 throw new OurException("Email already exists: " + user.getEmail());
             }
 
-            if ("ADMIN".equals(user.getRole())) {
-                postId = null;
-            }
-
+            // Gestion du post
             Post post = null;
-            if (postId != null) {
+            if (postId != null && !user.getIsTechnicien()) {
                 post = postRepository.findById(postId);
                 if (post == null) {
-                    throw new OurException("Post not found for the given postId.");
-                }
-                if (user.getIsSupervisor()) {
-
+                    throw new OurException("Post not found");
                 }
             }
 
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setIsSupervisor(user.getIsSupervisor());
-            user.setStartTime(user.getStartTime());
-            user.setCin(user.getCin());
-            user.setEndTime(user.getEndTime());
             user.setPost(post);
+
+            // Nettoyage des champs selon le rôle
+            if (user.getIsTechnicien()) {
+                user.setPost(null);
+                user.setStartTime(null);
+                user.setEndTime(null);
+            }
 
             User savedUser = userRepository.save(user);
             UserDTO userDTO = Utils.mapUserEntityToUserDTO(savedUser);
@@ -79,7 +76,7 @@ public class UserService implements IUserService {
             response.setMessage(e.getMessage());
         } catch (Exception e) {
             response.setStatusCode(500);
-            response.setMessage("Error occurred during user registration: " + e.getMessage());
+            response.setMessage("Error during registration: " + e.getMessage());
         }
         return response;
     }
@@ -95,6 +92,10 @@ public class UserService implements IUserService {
                 throw new OurException("Email already exists: " + user.getEmail());
             }
 
+            if (userRepository.existsByCin(user.getCin())) {
+                throw new OurException("CIN already exists. Please use a different CIN.");
+            }
+
             if ("ADMIN".equals(user.getRole())) {
                 postId = null;
             }
@@ -103,12 +104,14 @@ public class UserService implements IUserService {
             if (postId != null) {
                 post = postRepository.findById(postId);
 
+                // Vérification du superviseur existant pour le poste
                 boolean hasSupervisor = post.getUsers().stream().anyMatch(User::getIsSupervisor);
                 if (user.getIsSupervisor() && hasSupervisor) {
                     throw new OurException("This post already has a supervisor. Only one supervisor is allowed per post.");
                 }
             }
 
+            // Encodage du mot de passe et sauvegarde
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setPost(post);
             user.setRole("USER");
@@ -171,6 +174,7 @@ public class UserService implements IUserService {
             response.setExpirationTime("7 Days");
             response.setToken(token);
             response.setSupervisor(user.isSupervisor());
+            response.setTechnicien(user.isTechnicien());
             response.setStatus(true);
 
         } catch (OurException e) {
@@ -248,7 +252,6 @@ public class UserService implements IUserService {
             existingUser.setRole(user.getRole());
             existingUser.setPhone(user.getPhone());
             existingUser.setName(user.getName());
-            existingUser.setIsSupervisor(wantsToBeSupervisor);
             existingUser.setCin(user.getCin());
 
             if (user.getPost() != null) {
@@ -341,6 +344,7 @@ public class UserService implements IUserService {
             existingUser.setPhone(user.getPhone());
             existingUser.setName(user.getName());
             existingUser.setIsSupervisor(wantsToBeSupervisor);
+            existingUser.setIsTechnicien(user.getIsTechnicien());
             existingUser.setCin(user.getCin());
             existingUser.setPost(posteNow);
             existingUser.setStartTime(user.getStartTime());

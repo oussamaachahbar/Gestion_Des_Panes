@@ -14,6 +14,8 @@ public class Response<T> {
 
     private String token;
     private boolean supervisor;
+    private boolean technicien;
+
     private String role;
     private boolean status;
     private String expirationTime;

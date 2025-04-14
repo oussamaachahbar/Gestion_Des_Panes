@@ -3,9 +3,8 @@ package com.GestionPanne.GestionPanne.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.Duration;
 
 @Data
 @Entity
@@ -27,10 +26,13 @@ public class Problem {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "technicien_id")
+    private User technicien;
 
     private LocalDateTime failureDate = LocalDateTime.now();
-
     private LocalDateTime solutionDate;
+    private LocalDateTime assignmentDate;
 
     @NotBlank
     @Column(length = 1000)
@@ -42,5 +44,6 @@ public class Problem {
     @Enumerated(EnumType.STRING)
     private Etat etat;
     private String imageUrl;
+
 
 }

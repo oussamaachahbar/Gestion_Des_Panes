@@ -29,24 +29,31 @@ public class ProjectController {
     @Autowired
     private ProjectRepository projectRepository;
 
-    @PostMapping("/add/{familleId}/{filiereId}")
+    @PostMapping("/add/{familyId}/{programId}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProjectDTO>> createProject(
-            @PathVariable Long familleId,
-            @PathVariable Long filiereId,
-            @RequestBody Project projectDTO
-    ) {
-        Response<ProjectDTO> response;
+            @PathVariable Long familyId,
+            @PathVariable Long programId,
+            @RequestBody Project projectDTO) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        Response<ProjectDTO> response = new Response<>();
 
         try {
-            response = projectService.createProject(familleId, filiereId, projectDTO);
-            logService.saveLog("Projet créé avec succès : '" + projectDTO.getNameProject() + "' par " + email + ".");
+            logService.saveLog("Attempting to create project: " + projectDTO.getNameProject() + " by " + email);
+
+            response = projectService.createProject(familyId, programId, projectDTO);
+
+            if(response.getStatusCode() == 200) {
+                logService.saveLog("Project created successfully: '" + projectDTO.getNameProject() + "' by " + email);
+            } else {
+                logService.saveLog("Failed to create project: " + projectDTO.getNameProject() + ". Reason: " + response.getMessage());
+            }
+
         } catch (Exception e) {
-            logService.saveLog("Erreur lors de la création du projet : " + e.getMessage());
-            response = new Response<>();
-            response.setMessage("Erreur lors de la création du projet.");
+            logService.saveLog("Error creating project: " + e.getMessage() + " by " + email);
+            response.setMessage("Error creating project: " + e.getMessage());
             response.setStatusCode(500);
         }
 
@@ -61,28 +68,48 @@ public class ProjectController {
 
     @GetMapping("/getProjectById/{id}")
     public ResponseEntity<Response<ProjectDTO>> getProjectById(@PathVariable Long id) {
+        logService.saveLog("Fetching project with ID: " + id);
         Response<ProjectDTO> response = projectService.getProjectById(id);
+
+        if(response.getStatusCode() != 200) {
+            logService.saveLog("Project not found with ID: " + id);
+        }
+
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping("/updateProject/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response<ProjectDTO>> updateProject(@PathVariable Long id, @RequestBody Project projectDTO) {
+    public ResponseEntity<Response<ProjectDTO>> updateProject(
+            @PathVariable Long id,
+            @RequestBody Project projectDTO) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new OurException("Projet introuvable avec l'ID : " + id));
+        try {
+            Project project = projectRepository.findById(id)
+                    .orElseThrow(() -> new OurException("Project not found with ID: " + id));
 
-        Response<ProjectDTO> response = projectService.updateProject(id, projectDTO);
+            logService.saveLog("Attempting to update project: " + project.getNameProject() + " (ID: " + id + ") by " + email);
 
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("Mise à jour réussie : Le projet '" + project.getNameProject() + "' (ID: " + id + ") a été modifié par " + email + ".");
-        } else {
-            logService.saveLog("Échec de la mise à jour du projet avec l'ID : " + id + ".");
+            Response<ProjectDTO> response = projectService.updateProject(id, projectDTO);
+
+            if(response.getStatusCode() == 200) {
+                logService.saveLog("Project updated successfully: '" + project.getNameProject() + "' (ID: " + id + ") by " + email);
+            } else {
+                logService.saveLog("Failed to update project with ID: " + id + ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error updating project with ID: " + id + ". Error: " + e.getMessage());
+            Response<ProjectDTO> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
         }
-
-        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @DeleteMapping("/deleteProject/{id}")
@@ -91,25 +118,59 @@ public class ProjectController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new OurException("Projet introuvable avec l'ID : " + id));
+        try {
+            Project project = projectRepository.findById(id)
+                    .orElseThrow(() -> new OurException("Project not found with ID: " + id));
 
-        Response<Void> response = projectService.deleteProject(id);
+            logService.saveLog("Attempting to delete project: " + project.getNameProject() + " (ID: " + id + ") by " + email);
 
-        if (response.getStatusCode() == 200) {
-            logService.saveLog("Suppression réussie : Le projet '" + project.getNameProject() + "' (ID: " + id + ") a été supprimé par " + email + ".");
-        } else {
-            logService.saveLog("Échec de la suppression du projet avec l'ID : " + id + ".");
+            Response<Void> response = projectService.deleteProject(id);
+
+            if(response.getStatusCode() == 200) {
+                logService.saveLog("Project deleted successfully: '" + project.getNameProject() + "' (ID: " + id + ") by " + email);
+            } else {
+                logService.saveLog("Failed to delete project with ID: " + id + ". Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (OurException e) {
+            logService.saveLog("Error deleting project with ID: " + id + ". Error: " + e.getMessage());
+            Response<Void> errorResponse = new Response<>();
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setStatusCode(404);
+            return ResponseEntity.status(404).body(errorResponse);
         }
-
-        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PostMapping("/assignWorkstationToProject/{projectId}/assign-workstation")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProjectDTO>> assignWorkstationToProject(
             @PathVariable Long projectId,
             @RequestParam Long workstationId) {
-        Response<ProjectDTO> response = projectService.assignWorkstationToProject(projectId, workstationId);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        try {
+            logService.saveLog("Attempting to assign workstation ID: " + workstationId + " to project ID: " + projectId + " by " + email);
+
+            Response<ProjectDTO> response = projectService.assignWorkstationToProject(projectId, workstationId);
+
+            if(response.getStatusCode() == 200) {
+                logService.saveLog("Workstation assigned successfully to project ID: " + projectId + " by " + email);
+            } else {
+                logService.saveLog("Failed to assign workstation to project. Reason: " + response.getMessage());
+            }
+
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+
+        } catch (Exception e) {
+            logService.saveLog("Error assigning workstation to project: " + e.getMessage());
+            Response<ProjectDTO> errorResponse = new Response<>();
+            errorResponse.setMessage("Error assigning workstation: " + e.getMessage());
+            errorResponse.setStatusCode(500);
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 }

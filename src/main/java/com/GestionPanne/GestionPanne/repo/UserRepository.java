@@ -28,4 +28,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Transactional
     @Query(value = "ALTER TABLE users MODIFY COLUMN post_id BIGINT NULL", nativeQuery = true)
     void makePostIdNullable();
+
+    boolean existsByCin(String cin);
+
+    List<User> findByIsTechnicienTrue();
 }

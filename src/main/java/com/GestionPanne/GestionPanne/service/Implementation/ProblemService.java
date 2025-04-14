@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.UUID;
 
 import jakarta.mail.internet.MimeMessage;
@@ -107,7 +106,7 @@ public class ProblemService implements IProblemService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            helper.setTo("bepo.gh345@gmail.com");
+            helper.setTo("tangerfujikuraautomobile@gmail.com");
             helper.setSubject("🔔 [Alerte] Nouveau Problème Signalé - " + problem.getPost().getName());
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy 'à' HH:mm");
             String formattedDate = problem.getFailureDate().format(formatter);
@@ -152,7 +151,7 @@ public class ProblemService implements IProblemService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            helper.setTo("bepo.gh345@gmail.com");
+            helper.setTo("tangerfujikuraautomobile@gmail.com");
             helper.setSubject("🔔 [Alerte] Problème Finished - " + problem.getPost().getName());
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy 'à' HH:mm");
             String formattedDate = problem.getSolutionDate().format(formatter);
@@ -338,42 +337,43 @@ public class ProblemService implements IProblemService {
         Response<ProblemDTO> response = new Response<>();
         try {
             Problem problem = problemRepository.findById(Math.toIntExact(id))
-                    .orElseThrow(() -> new OurException("Problème avec l'ID " + id + " introuvable."));
-
-            if (problem.getSolutionDate() == null) {
-                LocalDateTime currentDateTime = LocalDateTime.now();
-                problem.setSolutionDate(LocalDateTime.now());
-            }
+                    .orElseThrow(() -> new OurException("Problème introuvable"));
 
             problem.setEtat(Etat.FINISHED);
-            Problem updatedProblem = problemRepository.save(problem);
-            sendProblemValidateEmail(updatedProblem);
+            problem.setSolutionDate(LocalDateTime.now());
 
+
+            Problem updatedProblem = problemRepository.save(problem);
+            sendProblemValidateEmail(problem);
             response.setStatusCode(200);
-            response.setMessage("Problème validé avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));
+
         } catch (OurException e) {
             response.setStatusCode(404);
             response.setMessage(e.getMessage());
-        } catch (Exception e) {
-            response.setStatusCode(500);
-            response.setMessage("Erreur interne : " + e.getMessage());
         }
         return response;
     }
 
 
     @Override
-    public Response<ProblemDTO> assignProblemToTeam(Long id) {
+    public Response<ProblemDTO> assignProblemToTeam(Long id, Long technicienId) {
         Response<ProblemDTO> response = new Response<>();
         try {
             Problem problem = problemRepository.findById(Math.toIntExact(id))
                     .orElseThrow(() -> new OurException("Problème avec l'ID " + id + " introuvable."));
 
+            User technicien = userRepository.findById(technicienId)
+                    .orElseThrow(() -> new OurException("Technicien avec l'ID " + technicienId + " introuvable."));
+
             problem.setEtat(Etat.EN_PROGRESS);
+            problem.setTechnicien(technicien);
+            problem.setAssignmentDate(LocalDateTime.now());
+
             Problem updatedProblem = problemRepository.save(problem);
+
             response.setStatusCode(200);
-            response.setMessage("Problème assigné avec succès.");
+            response.setMessage("Problème assigné au technicien avec succès.");
             response.setData(Utils.mapProblemEntityToProblemDTO(updatedProblem));
         } catch (OurException e) {
             response.setStatusCode(404);
@@ -381,8 +381,31 @@ public class ProblemService implements IProblemService {
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Erreur interne : " + e.getMessage());
+            e.printStackTrace(); // utile pour débogage
         }
         return response;
     }
 
+
+    @Override
+    public Response<List<ProblemDTO>> getProblemsByTechnicien(Long technicienId) {
+        Response<List<ProblemDTO>> response = new Response<>();
+        try {
+            List<Problem> problems = problemRepository.findByTechnicienId(technicienId);
+
+            User technicien = userRepository.findById(technicienId)
+                    .orElseThrow(() -> new OurException("Technicien avec l'ID " + technicienId + " introuvable."));
+
+            List<ProblemDTO> problemDTOs = Utils.mapProblemListEntityToProblemListDTO(problems);
+
+            response.setStatusCode(200);
+            response.setTechnicien(technicien.isTechnicien());
+            response.setMessage("Problèmes pour le technicien récupérés avec succès.");
+            response.setData(problemDTOs);
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Erreur interne : " + e.getMessage());
+        }
+        return response;
+    }
 }

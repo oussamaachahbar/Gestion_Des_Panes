@@ -3,7 +3,6 @@ package com.GestionPanne.GestionPanne.service.Interface;
 import java.util.List;
 
 import com.GestionPanne.GestionPanne.dto.*;
-import com.GestionPanne.GestionPanne.entity.Post;
 import com.GestionPanne.GestionPanne.entity.User;
 
 public interface IUserService {
