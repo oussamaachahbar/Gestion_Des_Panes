@@ -29,12 +29,12 @@ public class ProjectController {
     @Autowired
     private ProjectRepository projectRepository;
 
-    @PostMapping("/add/{familyId}/{programId}")
+    @PostMapping("/createProject/{familyId}/{filiereId}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response<ProjectDTO>> createProject(
             @PathVariable Long familyId,
-            @PathVariable Long programId,
-            @RequestBody Project projectDTO) {
+            @PathVariable Long filiereId,
+            @RequestBody Project projectDTO) {  // Change to ProjectDTO
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -42,21 +42,18 @@ public class ProjectController {
 
         try {
             logService.saveLog("Attempting to create project: " + projectDTO.getNameProject() + " by " + email);
+            response = projectService.createProject(familyId, filiereId, projectDTO);
 
-            response = projectService.createProject(familyId, programId, projectDTO);
-
-            if(response.getStatusCode() == 200) {
+            if(response.getStatusCode() == 201) {
                 logService.saveLog("Project created successfully: '" + projectDTO.getNameProject() + "' by " + email);
             } else {
                 logService.saveLog("Failed to create project: " + projectDTO.getNameProject() + ". Reason: " + response.getMessage());
             }
-
         } catch (Exception e) {
             logService.saveLog("Error creating project: " + e.getMessage() + " by " + email);
             response.setMessage("Error creating project: " + e.getMessage());
             response.setStatusCode(500);
         }
-
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 

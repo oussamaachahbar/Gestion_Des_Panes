@@ -34,34 +34,40 @@ public class ProjectService implements IProjectService {
     private FiliereRepository filiereRepository;
 
     @Override
-    public Response<ProjectDTO> createProject(long familyId, long filiereId, Project project) {
+    public Response<ProjectDTO> createProject(long familyId, long filiereId, Project projectDTO) {
         Response<ProjectDTO> response = new Response<>();
         try {
-            if (projectRepository.existsByNameProject(project.getNameProject())) {
-                throw new OurException("Project with name '" + project.getNameProject() + "' already exists.");
+            if (projectRepository.existsByNameProject(projectDTO.getNameProject())) {
+                throw new OurException("Project with name '" + projectDTO.getNameProject() + "' already exists.");
             }
+
+            Project project = new Project();
+            project.setNameProject(projectDTO.getNameProject());
+            // Set other fields as needed
+
             if (project.getPosts() == null) {
                 project.setPosts(new ArrayList<>());
             }
-            Family famille=familyRepository.findById(familyId).get();
-            Filiere filiere=filiereRepository.findById(filiereId).get();
-            if(famille!=null){
-                project.setFamily(famille);
-            }
-            if(filiere!=null){
-                project.setFiliere(filiere);
-            }
+
+            Family family = familyRepository.findById(familyId)
+                    .orElseThrow(() -> new OurException("Family not found"));
+            Filiere filiere = filiereRepository.findById(filiereId)
+                    .orElseThrow(() -> new OurException("Filiere not found"));
+
+            project.setFamily(family);
+            project.setFiliere(filiere);
+
             Project savedProject = projectRepository.save(project);
-            ProjectDTO projectDTO = Utils.mapProjectEntityToProjectDTO(savedProject);
+            ProjectDTO savedProjectDTO = Utils.mapProjectEntityToProjectDTO(savedProject);
 
             response.setStatusCode(201);
             response.setMessage("Project created successfully");
-            response.setData(projectDTO);
+            response.setData(savedProjectDTO);
         } catch (OurException e) {
-            response.setStatusCode(400); // 400 Bad Request
+            response.setStatusCode(400);
             response.setMessage(e.getMessage());
         } catch (Exception e) {
-            response.setStatusCode(500); // 500 Internal Server Error
+            response.setStatusCode(500);
             response.setMessage("Error creating project: " + e.getMessage());
         }
         return response;
